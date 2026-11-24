@@ -39,11 +39,20 @@ Built entirely with standard **HTML5 and Web Audio API**, requiring zero backend
 - Draggable directly onto progression slots.
 - **Borrowed Chords (Modal Interchange)**: Suggestions for poignant non-diatonic chords (minor `iv`, `bVII`, `bVI`, `V/vi`).
 
-### 4. 🎹 Interactive MIDI Piano Roll & Note Drawer
-- Click **"🎹 MIDI Grid (Piano Roll)"** or click the MIDI icon on any chord slot to open the Piano Roll editor.
+### 4. 🎹 Interactive MIDI Piano Roll & FL Studio / FL Studio Mobile Editor
+- **Multiple Clear Exit Paths**: Features a prominent red **"✕ Exit"** button in the header, a green **"✓ Done & Apply"** button in the footer, instant **ESC key shortcut**, and backdrop click dismiss so you can never get stuck.
+- **FL Studio Desktop Signature Workflow**:
+  - **Left Click**: Draw new notes on empty cells; click & drag note body to move in time & pitch.
+  - **Right Click**: Instantly deletes any note under cursor (FL Studio signature erase!). Dragging with right-click acts as an eraser brush.
+  - **Note Resizing**: Hover over any note's right edge (`ew-resize` cursor) and drag horizontally to stretch or contract duration with snap.
+- **FL Studio Mobile Touch-Friendly Tool Palette**:
+  - `✏️ Draw`: Click/tap to place notes and drag duration.
+  - `🗑️ Erase`: Click/tap any note to delete it (ideal for touchscreens).
+  - `↔️ Move`: Drag notes across the time grid and pitch rows.
+- **Grid Snap Control**: Switch resolution between `1/16`, `1/8`, `1/4 (Beat)`, `1/2 (2 Beats)`, or `1 Bar`.
 - **DAW-grade Grid**: Spans piano keys from C2 to C6 horizontally divided into Bars, Beats, and Subdivisions.
 - **Real-Time Playhead**: Sweeps smoothly across the grid in real-time synchronization with the Web Audio clock.
-- **Draw & Edit Notes**: Click any empty grid cell to draw a new MIDI note, click an existing note to delete it, or click piano keys on the left to preview pitch.
+- **Automatic Sync**: Edits made in the Piano Roll synchronize back to the Progression Track and Chord Voicings in real-time.
 
 ### 5. 🎸 Emotional Accompaniment Styles & 6-String Guitar Voicing Engine
 - **Fingerpicking (Ballad Pluck)**: Emulates a singer-songwriter picking an acoustic guitar or ballad piano. Triggers a deep, resonant bass note on beat 1, followed by rolling 8th-note string plucks (Bass -> 3rd -> 5th -> High Melody -> Alternating Bass -> 3rd -> High Melody -> 5th) that ring out and breathe naturally.
