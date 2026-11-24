@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="vi" class="dark">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ChordFlow - Tạo Vòng Hòa Thanh, Vòng Bậc 5, Lưới MIDI & Cảm Hứng Sáng Tác</title>
-  <meta name="description" content="Web app tạo vòng hòa thanh âm nhạc, Circle of Fifths, MIDI Piano Roll Grid Editor, General MIDI Instruments, Velocity cảm ứng lực và Metronome." />
+  <title>ChordFlow - Chord Progression Looper, Circle of Fifths & MIDI Studio</title>
+  <meta name="description" content="Interactive Chord Progression Generator, Circle of Fifths, MIDI Piano Roll Grid Editor, General MIDI Instruments, Velocity Sensitivity, and Metronome." />
   
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -43,7 +43,7 @@
           <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
             ChordFlow <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-950 text-indigo-400 border border-indigo-800/60">General MIDI Studio</span>
           </h1>
-          <p class="text-xs text-slate-400 hidden sm:block">Vòng tròn bậc 5, Lưới MIDI Piano Roll & Bộ tạo cảm hứng sáng tác</p>
+          <p class="text-xs text-slate-400 hidden sm:block">Circle of Fifths, MIDI Piano Roll & Songwriting Inspiration Studio</p>
         </div>
       </div>
 
@@ -51,13 +51,13 @@
       <div class="flex items-center flex-wrap gap-2 text-xs">
         <!-- Floating Velocity HUD -->
         <div id="velocity-hud" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 shadow-md opacity-0 transition-opacity duration-200">
-          <span class="text-slate-400 text-xs">Lực bấm:</span>
+          <span class="text-slate-400 text-xs">Velocity:</span>
           <span class="font-mono font-bold text-sky-400">Vel 90</span>
         </div>
 
         <!-- General MIDI Instrument Selector -->
         <div class="flex items-center space-x-1 bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5">
-          <span class="text-slate-400">Nhạc cụ (GM):</span>
+          <span class="text-slate-400">Instrument (GM):</span>
           <select id="instrument-select" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer max-w-[200px] truncate">
             <!-- Populated dynamically via app.js -->
           </select>
@@ -65,18 +65,18 @@
 
         <!-- Strumming style -->
         <div class="flex items-center space-x-1 bg-slate-800/80 border border-slate-700 rounded-lg px-2 py-1.5">
-          <span class="text-slate-400">Cách gõ:</span>
+          <span class="text-slate-400">Strum:</span>
           <select id="strum-select" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer">
-            <option value="gentle" class="bg-slate-900">Rải ngón tự nhiên (Strum)</option>
-            <option value="none" class="bg-slate-900">Đồng thời (Block chord)</option>
-            <option value="arpeggio" class="bg-slate-900">Arpeggio cuộn dài</option>
+            <option value="gentle" class="bg-slate-900">Natural Strum</option>
+            <option value="none" class="bg-slate-900">Block Chord</option>
+            <option value="arpeggio" class="bg-slate-900">Arpeggio Roll</option>
           </select>
         </div>
 
         <!-- Master Volume -->
         <div class="flex items-center space-x-1.5 bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5">
           <span>🔊</span>
-          <input id="master-volume" type="range" min="0" max="1" step="0.05" value="0.8" class="w-16 accent-indigo-500 cursor-pointer" title="Âm lượng nhạc" />
+          <input id="master-volume" type="range" min="0" max="1" step="0.05" value="0.8" class="w-16 accent-indigo-500 cursor-pointer" title="Master Volume" />
         </div>
       </div>
     </div>
@@ -94,32 +94,32 @@
           <!-- Play / Pause Button -->
           <button id="play-btn" class="flex items-center justify-center px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all cursor-pointer">
             <svg class="w-5 h-5 mr-1.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            <span>Phát</span>
+            <span>Play</span>
           </button>
 
           <!-- Stop Button -->
-          <button id="stop-btn" class="p-2.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer" title="Dừng và về đầu">
+          <button id="stop-btn" class="p-2.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer" title="Stop & Reset">
             <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
           </button>
 
           <!-- Loop Toggle -->
-          <button id="loop-btn" class="flex items-center space-x-1 px-3 py-2 rounded-xl border border-indigo-500 bg-indigo-600/30 text-indigo-400 font-medium text-xs transition cursor-pointer" title="Bật/Tắt Lặp lại">
+          <button id="loop-btn" class="flex items-center space-x-1 px-3 py-2 rounded-xl border border-indigo-500 bg-indigo-600/30 text-indigo-400 font-medium text-xs transition cursor-pointer" title="Toggle Loop">
             <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
-            <span>Loop (Lặp)</span>
+            <span>Loop</span>
           </button>
 
           <!-- Record Mode Toggle -->
-          <button id="record-btn" class="flex items-center space-x-1 px-3 py-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-400 font-medium text-xs hover:border-rose-600 transition cursor-pointer" title="Ghi hợp âm khi bấm">
+          <button id="record-btn" class="flex items-center space-x-1 px-3 py-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-400 font-medium text-xs hover:border-rose-600 transition cursor-pointer" title="Record Chords on Click">
             <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
-            <span>Ghi âm (Rec)</span>
+            <span>Record (Rec)</span>
           </button>
         </div>
 
-        <!-- Center: Tap Tempo ("Set Bấm") & BPM Slider -->
+        <!-- Center: Tap Tempo & BPM Slider -->
         <div class="flex items-center flex-wrap gap-3 bg-slate-900/90 border border-slate-800 rounded-xl px-3.5 py-2">
           <!-- Big Tactile Tap Tempo Button -->
           <button id="tap-tempo-btn" class="tap-btn px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-bold text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
-            <span>👆 BẤM NHỊP (TAP)</span>
+            <span>👆 TAP TEMPO</span>
             <span id="tap-bpm-display" class="font-mono text-[11px] text-sky-200"></span>
           </button>
 
@@ -138,37 +138,37 @@
           <!-- Metronome Toggle -->
           <label class="flex items-center space-x-2 cursor-pointer select-none bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-slate-800">
             <input id="metronome-toggle" type="checkbox" checked class="rounded accent-emerald-500 cursor-pointer" />
-            <span class="font-medium text-slate-300">⏱️ Mêtrônôm</span>
+            <span class="font-medium text-slate-300">⏱️ Metronome</span>
           </label>
 
           <!-- Metronome Volume Slider -->
-          <div class="flex items-center space-x-1" title="Âm lượng nhịp click">
+          <div class="flex items-center space-x-1" title="Click Volume">
             <span class="text-slate-500 text-[10px]">Click:</span>
             <input id="metronome-volume" type="range" min="0" max="1" step="0.05" value="0.7" class="w-14 accent-emerald-500 cursor-pointer" />
           </div>
 
           <!-- Beat Visual Flashing LEDs -->
-          <div class="flex items-center space-x-1.5 bg-slate-950 px-2.5 py-2 rounded-lg border border-slate-800" title="Đèn hiển thị phách 1, 2, 3, 4">
+          <div class="flex items-center space-x-1.5 bg-slate-950 px-2.5 py-2 rounded-lg border border-slate-800" title="Beats 1, 2, 3, 4 Indicator">
             <div class="beat-led" data-beat="0"></div>
             <div class="beat-led" data-beat="1"></div>
             <div class="beat-led" data-beat="2"></div>
             <div class="beat-led" data-beat="3"></div>
           </div>
 
-          <!-- Measure config (2 Khuông, 4 Khuông) -->
+          <!-- Measure config (2 Bars, 4 Bars, 8 Bars) -->
           <div class="flex items-center space-x-1">
             <select id="bars-select" class="bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs px-2 py-1.5 focus:outline-none">
-              <option value="2" selected>2 Khuông nhạc (2 Bars)</option>
-              <option value="4">4 Khuông nhạc (4 Bars)</option>
-              <option value="8">8 Khuông nhạc (8 Bars)</option>
+              <option value="2" selected>2 Bars</option>
+              <option value="4">4 Bars</option>
+              <option value="8">8 Bars</option>
             </select>
           </div>
 
           <!-- Time signature (4/4, 3/4) -->
           <div class="flex items-center space-x-1">
             <select id="time-sig-select" class="bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs px-2 py-1.5 focus:outline-none">
-              <option value="4" selected>Nhịp 4/4</option>
-              <option value="3">Nhịp 3/4 (Valso)</option>
+              <option value="4" selected>4/4 Time</option>
+              <option value="3">3/4 Time (Waltz)</option>
             </select>
           </div>
         </div>
@@ -181,39 +181,39 @@
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
         <div class="flex items-center space-x-2">
           <span class="text-base font-bold text-white flex items-center gap-1.5">
-            <span>🎼</span> Vòng Hòa Thanh Đang Chạy
+            <span>🎼</span> Active Progression Loop
           </span>
-          <span class="text-xs text-slate-400"> (Tự động lặp lại theo nhịp để nhẩm bè / melody)</span>
+          <span class="text-xs text-slate-400"> (Loops continuously for melodic improvisation & vocal toplines)</span>
         </div>
 
         <!-- Presets, MIDI Editor and Export Actions -->
         <div class="flex items-center flex-wrap gap-2 text-xs">
           <!-- Big Button: Open Piano Roll / MIDI Grid Window -->
           <button id="open-pianoroll-btn" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow-md shadow-indigo-600/30 transition cursor-pointer flex items-center gap-1.5">
-            <span>🎹 Mở Lưới MIDI (Piano Roll)</span>
+            <span>🎹 Open MIDI Grid (Piano Roll)</span>
           </button>
 
           <!-- Inspiration Presets -->
           <div class="flex items-center space-x-1">
-            <span class="text-indigo-400 font-semibold">💡 Gợi ý hay:</span>
+            <span class="text-indigo-400 font-semibold">💡 Presets:</span>
             <select id="presets-select" class="bg-indigo-950/70 border border-indigo-700/60 rounded-lg text-indigo-200 text-xs px-2 py-1.5 font-medium focus:outline-none cursor-pointer">
-              <option value="">-- Chọn vòng mẫu kinh điển --</option>
+              <option value="">-- Choose a classic progression --</option>
             </select>
           </div>
 
           <!-- Copy text -->
           <button id="copy-progression-btn" class="px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition cursor-pointer">
-            📋 Sao chép text
+            📋 Copy Text
           </button>
 
           <!-- Export MIDI -->
           <button id="export-midi-btn" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow transition cursor-pointer flex items-center gap-1">
-            <span>💾 Xuất file MIDI (.mid)</span>
+            <span>💾 Export MIDI (.mid)</span>
           </button>
 
           <!-- Clear -->
-          <button id="clear-progression-btn" class="px-2 py-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-950/30 transition cursor-pointer" title="Xóa vòng">
-            Làm mới
+          <button id="clear-progression-btn" class="px-2 py-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-950/30 transition cursor-pointer" title="Clear Progression">
+            Clear
           </button>
         </div>
       </div>
@@ -232,9 +232,9 @@
         <div class="w-full flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
           <div>
             <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-              <span>⭕</span> Vòng Tròn Bậc 5 (Circle of 5ths)
+              <span>⭕</span> Circle of Fifths
             </h2>
-            <p class="text-[11px] text-slate-400">Bấm mép ngoài: <b>Mạnh (ff)</b> | Bấm mép trong: <b>Nhẹ (p)</b></p>
+            <p class="text-[11px] text-slate-400">Outer edge: <b>Forte (ff)</b> | Inner edge: <b>Piano (p)</b></p>
           </div>
           <div class="text-right">
             <span id="current-key-title" class="text-base font-extrabold text-sky-400">C Major</span>
@@ -244,19 +244,19 @@
         <!-- Scale Mode & 7th Chords Configuration -->
         <div class="w-full flex items-center justify-between gap-2 mb-3 bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-xs">
           <div class="flex items-center space-x-1.5 flex-1">
-            <span class="text-slate-400">Âm giai:</span>
+            <span class="text-slate-400">Scale:</span>
             <select id="scale-mode-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg text-white font-medium px-2 py-1 focus:outline-none cursor-pointer">
-              <option value="major">Major (Trưởng tự nhiên)</option>
-              <option value="minor">Natural Minor (Thứ tự nhiên)</option>
-              <option value="harmonic_minor">Harmonic Minor (Thứ hòa âm)</option>
-              <option value="dorian">Dorian (Thứ tươi / Folk)</option>
-              <option value="mixolydian">Mixolydian (Trưởng Rock / Blues)</option>
+              <option value="major">Major (Ionian)</option>
+              <option value="minor">Natural Minor (Aeolian)</option>
+              <option value="harmonic_minor">Harmonic Minor</option>
+              <option value="dorian">Dorian (Folk / Jazz)</option>
+              <option value="mixolydian">Mixolydian (Blues / Rock)</option>
             </select>
           </div>
 
           <label class="flex items-center space-x-1.5 cursor-pointer select-none pl-2 border-l border-slate-700">
             <input id="toggle-7th" type="checkbox" class="rounded accent-indigo-500 cursor-pointer" />
-            <span class="font-semibold text-indigo-300">Hợp âm 7 (7ths)</span>
+            <span class="font-semibold text-indigo-300">7th Chords (7ths)</span>
           </label>
         </div>
 
@@ -269,18 +269,18 @@
         <div class="w-full mt-3 pt-3 border-t border-slate-800 text-[11px] text-slate-400 flex flex-wrap justify-around gap-2">
           <div class="flex items-center space-x-1">
             <span class="w-2.5 h-2.5 rounded bg-indigo-600 inline-block"></span>
-            <span>Chủ âm (Tonic)</span>
+            <span>Tonic (I)</span>
           </div>
           <div class="flex items-center space-x-1">
             <span class="w-2.5 h-2.5 rounded bg-sky-600 inline-block"></span>
-            <span>Hạ át (IV)</span>
+            <span>Subdominant (IV)</span>
           </div>
           <div class="flex items-center space-x-1">
             <span class="w-2.5 h-2.5 rounded bg-amber-600 inline-block"></span>
-            <span>Át âm (V)</span>
+            <span>Dominant (V)</span>
           </div>
           <div class="flex items-center space-x-1 text-emerald-400">
-            <span>⚡ Chạm vị trí để đổi Velocity</span>
+            <span>⚡ Touch position controls Velocity</span>
           </div>
         </div>
       </section>
@@ -288,16 +288,16 @@
       <!-- Right Column: Scale Degrees Chord Pads I - VII (7 cols) -->
       <section class="lg:col-span-7 flex flex-col gap-4">
 
-        <!-- Diatonic Chords Pads (Bậc I đến VII) -->
+        <!-- Diatonic Chords Pads (Degrees I to VII) -->
         <div class="studio-card rounded-2xl p-4 sm:p-5">
           <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
             <div>
               <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <span>🎹</span> Bàn Phím Hợp Âm Các Bậc (I - VII)
+                <span>🎹</span> Scale Degree Chord Pads (I - VII)
               </h2>
-              <p class="text-[11px] text-slate-400">Bấm nửa trên: <b>Mạnh (f)</b> | Nửa dưới: <b>Nhẹ (p)</b> | Phím số 1-7 trên bàn phím</p>
+              <p class="text-[11px] text-slate-400">Top click: <b>Forte (f)</b> | Bottom click: <b>Piano (p)</b> | Keys 1-7 on keyboard</p>
             </div>
-            <span class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">Cảm ứng lực Velocity</span>
+            <span class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">Dynamic Velocity</span>
           </div>
 
           <!-- Chord Pads Grid -->
@@ -306,16 +306,16 @@
           </div>
         </div>
 
-        <!-- Borrowed Chords (Hợp âm vay mượn tạo cảm xúc đặc biệt) -->
+        <!-- Borrowed Chords (Modal Interchange) -->
         <div id="borrowed-section" class="studio-card rounded-2xl p-4 sm:p-5">
           <div class="flex items-center justify-between mb-2">
             <div>
               <h3 class="text-sm font-bold text-purple-300 flex items-center gap-1.5">
-                <span>✨</span> Hợp Âm Vay Mượn (Borrowed / Modal Interchange)
+                <span>✨</span> Borrowed Chords (Modal Interchange)
               </h3>
-              <p class="text-[11px] text-slate-400">Những hợp âm ngoài âm giai tạo điểm nhấn da diết, bất ngờ trong sáng tác</p>
+              <p class="text-[11px] text-slate-400">Out-of-key chords that add intense emotion, drama, and unexpected color</p>
             </div>
-            <span class="text-[11px] px-2 py-0.5 rounded bg-purple-900/60 text-purple-300 border border-purple-800">Tạo điểm nhấn</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-purple-900/60 text-purple-300 border border-purple-800">Inspiring Colors</span>
           </div>
 
           <div id="borrowed-pads-container" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-2">
@@ -326,15 +326,15 @@
         <!-- Songwriting Tips & Keyboard Shortcuts Box -->
         <div class="studio-card rounded-2xl p-4 bg-slate-900/50 border border-slate-800 text-xs text-slate-400 flex flex-col gap-2">
           <div class="font-bold text-slate-200 flex items-center gap-1">
-            <span>⌨️</span> Phím tắt nhanh:
+            <span>⌨️</span> Keyboard Shortcuts:
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">Space</kbd>: Phát / Dừng</div>
-            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">1 - 7</kbd>: Bấm hợp âm bậc 1-7</div>
-            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">T</kbd>: Bấm nhịp (Tap Tempo)</div>
-            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">L</kbd>: Bật/Tắt Lặp (Loop)</div>
-            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">R</kbd>: Ghi âm hợp âm</div>
-            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">M</kbd>: Bật/Tắt Mêtrônôm</div>
+            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">Space</kbd>: Play / Pause</div>
+            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">1 - 7</kbd>: Play Chord Degrees 1-7</div>
+            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">T</kbd>: Tap Tempo</div>
+            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">L</kbd>: Toggle Loop</div>
+            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">R</kbd>: Record Chords</div>
+            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">M</kbd>: Toggle Metronome</div>
           </div>
         </div>
 
@@ -347,8 +347,8 @@
   <!-- FOOTER -->
   <footer class="border-t border-slate-800 bg-slate-950/80 py-4 px-4 text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-      <p>ChordFlow - Công cụ hỗ trợ sáng tác & hòa âm âm nhạc trực quan (Web Audio & MIDI Export).</p>
-      <p class="text-slate-600">Sẵn sàng triển khai 1-click lên GitHub Pages.</p>
+      <p>ChordFlow - Visual Chord Progression & Songwriting Studio (Web Audio & MIDI Export).</p>
+      <p class="text-slate-600">Ready for 1-click GitHub Pages deployment.</p>
     </div>
   </footer>
 

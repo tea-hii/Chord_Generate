@@ -50,7 +50,6 @@ class CircleOfFifths {
 
   // Calculate velocity (30..127) from click/touch coordinates relative to SVG center
   computeVelocity(event, mode) {
-    // If device supports hardware pressure (stylus / touch)
     if (event.pressure && event.pressure > 0.05 && event.pressure < 1.0) {
       return Math.round(35 + event.pressure * 92);
     }
@@ -62,7 +61,6 @@ class CircleOfFifths {
     const clickX = event.clientX - rect.left;
     const clickY = event.clientY - rect.top;
 
-    // Scale to viewBox coordinates
     const scale = this.size / rect.width;
     const svgX = clickX * scale;
     const svgY = clickY * scale;
@@ -74,10 +72,7 @@ class CircleOfFifths {
     let innerR = (mode === 'major') ? this.midRadius : this.innerRadius;
     let outerR = (mode === 'major') ? this.outerRadius : this.midRadius;
 
-    // Calculate normalized radial ratio (0.0 at inner edge, 1.0 at outer edge)
     const ratio = Math.max(0, Math.min(1, (distance - innerR) / (outerR - innerR)));
-
-    // Map: inner edge = piano (45), outer edge = fortissimo (127)
     const velocity = Math.round(45 + ratio * 82);
     return Math.max(35, Math.min(127, velocity));
   }
@@ -164,7 +159,7 @@ class CircleOfFifths {
                 stroke-width="1.2"
                 data-key="${item.root}" 
                 data-mode="major"
-                title="${item.root} Trưởng (Mép ngoài: Mạnh ff / Mép trong: Nhẹ p)">
+                title="${item.root} Major (Outer edge: Forte ff / Inner edge: Piano p)">
           </path>
           <text x="${outerTextPos.x}" y="${outerTextPos.y + 4}" 
                 text-anchor="middle" 
@@ -177,7 +172,7 @@ class CircleOfFifths {
                 stroke-width="1.2"
                 data-key="${item.minor.replace('m', '')}" 
                 data-mode="minor"
-                title="${item.minor} Thứ (Mép ngoài: Mạnh ff / Mép trong: Nhẹ p)">
+                title="${item.minor} Minor (Outer edge: Forte ff / Inner edge: Piano p)">
           </path>
           <text x="${innerTextPos.x}" y="${innerTextPos.y + 3}" 
                 text-anchor="middle" 
@@ -191,7 +186,7 @@ class CircleOfFifths {
     // Center Display Circle
     const currentItem = CIRCLE_OF_FIFTHS[activeIndex];
     const displayLabel = this.selectedMode === 'major' ? `${this.selectedKey} Major` : `${this.selectedKey}m Minor`;
-    const accLabel = currentItem ? (currentItem.accidentals > 0 ? `${currentItem.accidentals} dấu #` : (currentItem.accidentals < 0 ? `${Math.abs(currentItem.accidentals)} dấu b` : '0 dấu hóa')) : '';
+    const accLabel = currentItem ? (currentItem.accidentals > 0 ? `${currentItem.accidentals} Sharps (#)` : (currentItem.accidentals < 0 ? `${Math.abs(currentItem.accidentals)} Flats (b)` : 'Natural (0)')) : '';
 
     svgHtml += `
         <!-- Center Hub -->

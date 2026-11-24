@@ -23,44 +23,44 @@ const CIRCLE_OF_FIFTHS = [
 // Scale intervals (semitones from tonic)
 const SCALE_MODES = {
   major: {
-    name: 'Major (Trưởng / Ionian)',
+    name: 'Major (Ionian)',
     intervals: [0, 2, 4, 5, 7, 9, 11],
     degreeNames: ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'],
     triadTypes: ['maj', 'min', 'min', 'maj', 'maj', 'min', 'dim'],
     seventhTypes: ['maj7', 'm7', 'm7', 'maj7', '7', 'm7', 'm7b5'],
-    functions: ['Chủ âm (Tonic)', 'Tiền át (Subdominant)', 'Trung gian (Mediant)', 'Hạ át (Subdominant)', 'Át âm (Dominant)', 'Hạ trung gian (Submediant)', 'Cảm âm (Leading)']
+    functions: ['Tonic', 'Supertonic', 'Mediant', 'Subdominant', 'Dominant', 'Submediant', 'Leading Tone']
   },
   minor: {
-    name: 'Natural Minor (Thứ tự nhiên / Aeolian)',
+    name: 'Natural Minor (Aeolian)',
     intervals: [0, 2, 3, 5, 7, 8, 10],
     degreeNames: ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII'],
     triadTypes: ['min', 'dim', 'maj', 'min', 'min', 'maj', 'maj'],
     seventhTypes: ['m7', 'm7b5', 'maj7', 'm7', 'm7', 'maj7', '7'],
-    functions: ['Chủ âm (Tonic)', 'Tiền át (Subdominant)', 'Trung gian (Mediant)', 'Hạ át (Subdominant)', 'Át âm (Dominant)', 'Hạ trung gian (Submediant)', 'Dưới chủ âm (Subtonic)']
+    functions: ['Tonic', 'Supertonic', 'Mediant', 'Subdominant', 'Dominant', 'Submediant', 'Subtonic']
   },
   harmonic_minor: {
-    name: 'Harmonic Minor (Thứ hòa âm)',
+    name: 'Harmonic Minor',
     intervals: [0, 2, 3, 5, 7, 8, 11],
     degreeNames: ['i', 'ii°', 'III+', 'iv', 'V', 'VI', 'vii°'],
     triadTypes: ['min', 'dim', 'aug', 'min', 'maj', 'maj', 'dim'],
     seventhTypes: ['m(maj7)', 'm7b5', 'maj7#5', 'm7', '7', 'maj7', 'dim7'],
-    functions: ['Chủ âm', 'Tiền át', 'Trung gian', 'Hạ át', 'Át âm kịch tính', 'Hạ trung gian', 'Cảm âm']
+    functions: ['Tonic', 'Supertonic', 'Mediant', 'Subdominant', 'Dramatic Dominant', 'Submediant', 'Leading Tone']
   },
   dorian: {
-    name: 'Dorian (Thứ tươi / Folk / Jazz)',
+    name: 'Dorian (Folk / Jazz Minor)',
     intervals: [0, 2, 3, 5, 7, 9, 10],
     degreeNames: ['i', 'ii', 'III', 'IV', 'v', 'vi°', 'VII'],
     triadTypes: ['min', 'min', 'maj', 'maj', 'min', 'dim', 'maj'],
     seventhTypes: ['m7', 'm7', 'maj7', '7', 'm7', 'm7b5', 'maj7'],
-    functions: ['Chủ âm', 'Hạ át', 'Trung gian', 'Đặc trưng Dorian', 'Át âm', 'Giảm', 'Dưới chủ']
+    functions: ['Tonic', 'Supertonic', 'Mediant', 'Characteristic Major IV', 'Dominant', 'Submediant', 'Subtonic']
   },
   mixolydian: {
-    name: 'Mixolydian (Trưởng Blues / Rock)',
+    name: 'Mixolydian (Blues / Rock Major)',
     intervals: [0, 2, 4, 5, 7, 9, 10],
     degreeNames: ['I', 'ii', 'iii°', 'IV', 'v', 'vi', 'bVII'],
     triadTypes: ['maj', 'min', 'dim', 'maj', 'min', 'min', 'maj'],
     seventhTypes: ['7', 'm7', 'm7b5', 'maj7', 'm7', 'm7', 'maj7'],
-    functions: ['Chủ âm át', 'Tiền át', 'Giảm', 'Hạ át', 'Át thứ', 'Hạ trung', 'Đặc trưng Mixo']
+    functions: ['Tonic Dominant', 'Supertonic', 'Mediant', 'Subdominant', 'Minor Dominant', 'Submediant', 'Characteristic bVII']
   }
 };
 
@@ -104,28 +104,28 @@ const CHORD_DISPLAY_SUFFIX = {
   maj9: 'maj9'
 };
 
-// Pre-defined popular chord progressions for instant inspiration
+// Pre-defined popular chord progressions for instant songwriting inspiration
 const PROGRESSION_TEMPLATES = [
   {
     name: 'Pop Wonder (I - V - vi - IV)',
     genre: 'Pop / Ballad',
-    description: 'Vòng 4 hợp âm bất hủ trong hàng ngàn bài hit (Someone Like You, Perfect, Don\'t Stop Believin\')',
+    description: 'The timeless 4-chord progression heard in thousands of global hits (Someone Like You, Perfect, Don\'t Stop Believin\')',
     mode: 'major',
-    degrees: [0, 4, 5, 3], // 0-based indices in scale: I, V, vi, IV
+    degrees: [0, 4, 5, 3],
     defaultBeats: 4
   },
   {
     name: 'Emotional / Sad Mood (vi - IV - I - V)',
     genre: 'Emotional / Indie',
-    description: 'Bắt đầu bằng bậc vi gợi cảm giác sâu lắng, hoài niệm (Faded, Nơi này có anh, Apologize)',
+    description: 'Starts on the vi chord, evocative, introspective and nostalgic (Faded, Apologize)',
     mode: 'major',
     degrees: [5, 3, 0, 4],
     defaultBeats: 4
   },
   {
     name: 'Royal Road / Odo Shinkou (IV - V - iii - vi)',
-    genre: 'J-Pop / Anime / V-Pop',
-    description: 'Vòng hòa thanh hoàng kim cảm xúc mãnh liệt đặc trưng Anime & nhạc trẻ châu Á',
+    genre: 'J-Pop / Anime / Asian Pop',
+    description: 'The quintessential Asian Pop and Anime progression with powerful dramatic emotional lift',
     mode: 'major',
     degrees: [3, 4, 2, 5],
     defaultBeats: 4
@@ -133,7 +133,7 @@ const PROGRESSION_TEMPLATES = [
   {
     name: '50s Doo-Wop / Retro (I - vi - IV - V)',
     genre: 'Retro / RnB / Oldies',
-    description: 'Vòng kinh điển của thập niên 50-60 (Stand By Me, Beautiful Girls, Dấu mưa)',
+    description: 'The classic mid-century progression of timeless golden standards (Stand By Me, Beautiful Girls)',
     mode: 'major',
     degrees: [0, 5, 3, 4],
     defaultBeats: 4
@@ -141,7 +141,7 @@ const PROGRESSION_TEMPLATES = [
   {
     name: 'Jazz Cadence (ii7 - V7 - Imaj7 - VI7)',
     genre: 'Jazz / Neo-Soul',
-    description: 'Cặp hòa thanh chuyển bậc chuẩn mực của nhạc Jazz, mượt mà và sang trọng',
+    description: 'The standard harmonic turnaround of jazz, smooth and sophisticated',
     mode: 'major',
     use7ths: true,
     degrees: [1, 4, 0, 5],
@@ -149,8 +149,8 @@ const PROGRESSION_TEMPLATES = [
   },
   {
     name: 'Pachelbel Canon (I - V - vi - iii - IV - I - IV - V)',
-    genre: 'Classical / Wedding Pop',
-    description: '8 ô nhịp tròn trịa, nâng đỡ giai điệu thăng hoa liên tục',
+    genre: 'Classical / Anthem',
+    description: '8-bar progression creating continuous forward melodic motion and resolution',
     mode: 'major',
     degrees: [0, 4, 5, 2, 3, 0, 3, 4],
     defaultBeats: 4
@@ -158,7 +158,7 @@ const PROGRESSION_TEMPLATES = [
   {
     name: 'Andalusian Cadence (i - VII - VI - V)',
     genre: 'Flamenco / Latin Rock',
-    description: 'Bước đi chromatic đi xuống bí ẩn, dồn dập (Hit The Road Jack, Sultans of Swing)',
+    description: 'Descending chromatic bassline with suspenseful and driving momentum (Hit The Road Jack, Sultans of Swing)',
     mode: 'minor',
     degrees: [0, 6, 5, 4],
     defaultBeats: 4
@@ -166,7 +166,7 @@ const PROGRESSION_TEMPLATES = [
   {
     name: 'Hopeful Journey (I - iii - IV - V)',
     genre: 'Acoustic / Hopeful',
-    description: 'Âm thanh tươi sáng, hi vọng và mộc mạc',
+    description: 'Bright, acoustic, open-hearted and optimistic',
     mode: 'major',
     degrees: [0, 2, 3, 4],
     defaultBeats: 4
@@ -174,7 +174,7 @@ const PROGRESSION_TEMPLATES = [
   {
     name: 'Lofi Chill / R&B (IVmaj7 - iii7 - ii7 - Imaj7)',
     genre: 'Lofi / Neo-Soul',
-    description: 'Hạ dần nhẹ nhàng êm dịu, rất hợp để chill hoặc viết rap/melody',
+    description: 'Stepwise descending cadence, perfect for relaxing beats and vocal melodies',
     mode: 'major',
     use7ths: true,
     degrees: [3, 2, 1, 0],
@@ -230,8 +230,7 @@ function getScaleChords(rootName, modeKey = 'major', use7ths = false) {
     const chordMidiNotes = [bassMidi];
 
     // Voicing: triad/7th in octave 3/4
-    // Root note in upper register:
-    const baseOctave = chordRootMidi < 4 ? 48 : 48; // keep close voicing around middle C
+    const baseOctave = chordRootMidi < 4 ? 48 : 48;
     for (const semitone of intervals) {
       chordMidiNotes.push(baseOctave + chordRootMidi + semitone);
     }
@@ -249,7 +248,7 @@ function getScaleChords(rootName, modeKey = 'major', use7ths = false) {
     });
   }
 
-  // Bonus: Add useful "Borrowed Chords" (Hợp âm vay mượn) for creative spark
+  // Bonus: Add useful "Borrowed Chords" (Modal Interchange) for creative inspiration
   const borrowed = [];
   if (modeKey === 'major') {
     // iv (Minor 4th - famous tearjerker)
@@ -259,7 +258,7 @@ function getScaleChords(rootName, modeKey = 'major', use7ths = false) {
       rootName: midiToNoteName(ivMidi, true),
       type: use7ths ? 'm7' : 'min',
       fullName: midiToNoteName(ivMidi, true) + (use7ths ? 'm7' : 'm'),
-      functionName: 'Vay mượn bậc iv thứ (cực kỳ cảm xúc / Radiohead)',
+      functionName: 'Borrowed Minor iv (Deep Emotion / Radiohead Ballad)',
       midiNotes: [36 + ivMidi, 48 + ivMidi, 48 + ivMidi + 3, 48 + ivMidi + 7],
       isBorrowed: true
     });
@@ -270,7 +269,7 @@ function getScaleChords(rootName, modeKey = 'major', use7ths = false) {
       rootName: midiToNoteName(bviMidi, true),
       type: use7ths ? '7' : 'maj',
       fullName: midiToNoteName(bviMidi, true) + (use7ths ? '7' : ''),
-      functionName: 'Vay mượn bVII (Rock, Epic, hào hùng)',
+      functionName: 'Borrowed bVII (Rock, Epic, Backdoor Dominant)',
       midiNotes: [36 + bviMidi, 48 + bviMidi, 48 + bviMidi + 4, 48 + bviMidi + 7],
       isBorrowed: true
     });
@@ -281,7 +280,7 @@ function getScaleChords(rootName, modeKey = 'major', use7ths = false) {
       rootName: midiToNoteName(b6Midi, true),
       type: 'maj',
       fullName: midiToNoteName(b6Midi, true),
-      functionName: 'Vay mượn bVI (Điện ảnh, kịch tính, bất ngờ)',
+      functionName: 'Borrowed bVI (Cinematic Drama, Sudden Wonder)',
       midiNotes: [36 + b6Midi, 48 + b6Midi, 48 + b6Midi + 4, 48 + b6Midi + 7],
       isBorrowed: true
     });
@@ -292,7 +291,7 @@ function getScaleChords(rootName, modeKey = 'major', use7ths = false) {
       rootName: midiToNoteName(v6Midi, useFlat),
       type: '7',
       fullName: midiToNoteName(v6Midi, useFlat) + '7',
-      functionName: 'Át phụ về bậc vi (Dẫn về nốt trầm da diết)',
+      functionName: 'Secondary Dominant V/vi (Leading to Relative Minor)',
       midiNotes: [36 + v6Midi, 48 + v6Midi, 48 + v6Midi + 4, 48 + v6Midi + 7, 48 + v6Midi + 10],
       isBorrowed: true
     });
@@ -304,7 +303,7 @@ function getScaleChords(rootName, modeKey = 'major', use7ths = false) {
       rootName: midiToNoteName(vMidi, useFlat),
       type: '7',
       fullName: midiToNoteName(vMidi, useFlat) + '7',
-      functionName: 'Át trưởng V7 (Cổ điển, kết dứt khoát về i)',
+      functionName: 'Major Dominant V7 (Harmonic Minor Resolution)',
       midiNotes: [36 + vMidi, 48 + vMidi, 48 + vMidi + 4, 48 + vMidi + 7, 48 + vMidi + 10],
       isBorrowed: true
     });
@@ -315,7 +314,7 @@ function getScaleChords(rootName, modeKey = 'major', use7ths = false) {
       rootName: midiToNoteName(ivMidi, useFlat),
       type: 'maj',
       fullName: midiToNoteName(ivMidi, useFlat),
-      functionName: 'Bậc IV trưởng (Màu Dorian, tươi sáng)',
+      functionName: 'Major IV (Bright Dorian Mode Color)',
       midiNotes: [36 + ivMidi, 48 + ivMidi, 48 + ivMidi + 4, 48 + ivMidi + 7],
       isBorrowed: true
     });

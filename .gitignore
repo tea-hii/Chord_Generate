@@ -3,3 +3,7 @@ Thumbs.db
 *.tmp
 .vscode/
 .idea/
+
+# Local agent rules & config (do not push to git remote)
+.gemini/
+AGENTS.md

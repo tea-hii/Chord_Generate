@@ -48,23 +48,23 @@ class PianoRollModal {
             </div>
             <div>
               <h3 class="text-base font-bold text-white flex items-center gap-2">
-                Cửa Sổ Lưới MIDI (Piano Roll Editor)
-                <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-950 text-sky-400 border border-sky-800">Visualizer & Vẽ Nốt</span>
+                MIDI Grid & Piano Roll Editor
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-950 text-sky-400 border border-sky-800">Visualizer & Note Drawer</span>
               </h3>
-              <p class="text-xs text-slate-400">Xem vòng hợp âm đã ghi, nhấp vào lưới để vẽ/thêm nốt, hoặc click vào nốt để xóa</p>
+              <p class="text-xs text-slate-400">Inspect the progression, click empty cells to draw new notes, or click existing notes to delete</p>
             </div>
           </div>
 
           <!-- Controls in Header -->
           <div class="flex items-center space-x-2 text-xs">
             <button id="pr-play-btn" class="flex items-center space-x-1 px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition cursor-pointer">
-              <span>▶ Phát</span>
+              <span>▶ Play</span>
             </button>
             <button id="pr-loop-btn" class="px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 font-medium hover:border-indigo-500 transition cursor-pointer">
-              🔁 Lặp lại
+              🔁 Loop
             </button>
-            <button id="pr-refresh-btn" class="px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition cursor-pointer" title="Đồng bộ lại từ vòng hợp âm">
-              🔄 Tải lại hợp âm
+            <button id="pr-refresh-btn" class="px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition cursor-pointer" title="Reload from progression track">
+              🔄 Sync Chords
             </button>
             <button id="pr-close-btn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-rose-900/60 text-slate-400 hover:text-white flex items-center justify-center text-base font-bold transition cursor-pointer">
               ✕
@@ -72,24 +72,24 @@ class PianoRollModal {
           </div>
         </div>
 
-        <!-- Toolbar / Help Bar -->
+        <!-- Toolbar / Legend -->
         <div class="flex items-center justify-between px-5 py-2 bg-slate-950/40 border-b border-slate-800/80 text-[11px] text-slate-400">
           <div class="flex items-center space-x-4">
             <span class="flex items-center gap-1.5">
               <span class="w-3 h-3 rounded bg-indigo-500 inline-block"></span>
-              <span>Nốt hợp âm (Vòng lặp)</span>
+              <span>Chord Voices (Loop)</span>
             </span>
             <span class="flex items-center gap-1.5">
               <span class="w-3 h-3 rounded bg-emerald-400 inline-block"></span>
-              <span>Nốt bass</span>
+              <span>Bass Notes</span>
             </span>
             <span class="flex items-center gap-1.5">
               <span class="w-0.5 h-3 bg-rose-500 inline-block"></span>
-              <span>Con trỏ phát sáng (Playhead)</span>
+              <span>Playhead Laser</span>
             </span>
           </div>
           <div>
-            <span>Mẹo: Nhấp phím đàn bên trái để nghe thử nốt | Bấm chuột vào ô trống để vẽ nốt mới</span>
+            <span>Tip: Click piano keys on the left to preview pitch | Click empty cells on the grid to draw notes</span>
           </div>
         </div>
 
@@ -134,47 +134,39 @@ class PianoRollModal {
     const closeBtn = this.modalEl.querySelector('#pr-close-btn');
     closeBtn.addEventListener('click', () => this.close());
 
-    // Close on background click
     this.modalEl.addEventListener('click', (e) => {
       if (e.target === this.modalEl) this.close();
     });
 
-    // Play button in modal
     const playBtn = this.modalEl.querySelector('#pr-play-btn');
     playBtn.addEventListener('click', () => {
       this.sequencer.togglePlay();
       this.syncPlayBtn();
     });
 
-    // Loop button in modal
     const loopBtn = this.modalEl.querySelector('#pr-loop-btn');
     loopBtn.addEventListener('click', () => {
       this.sequencer.isLooping = !this.sequencer.isLooping;
       this.syncLoopBtn();
     });
 
-    // Refresh from progression
     const refreshBtn = this.modalEl.querySelector('#pr-refresh-btn');
     refreshBtn.addEventListener('click', () => {
       this.syncFromSequencer();
       this.draw();
     });
 
-    // Sync vertical scroll between piano keys and grid
     this.gridContainer.addEventListener('scroll', () => {
       this.keysContainer.scrollTop = this.gridContainer.scrollTop;
     });
 
-    // Canvas click to add or remove notes ("vẽ midi")
     this.canvasEl.addEventListener('click', (e) => {
       this.handleCanvasClick(e);
     });
   }
 
-  // Synchronize notes list from sequencer chord slots
   syncFromSequencer() {
     this.customNotes = [];
-    const totalBeats = this.sequencer.getTotalBeats();
 
     this.sequencer.slots.forEach(slot => {
       if (!slot.chord || !slot.chord.midiNotes) return;
@@ -197,7 +189,6 @@ class PianoRollModal {
     });
   }
 
-  // Open modal and render
   open() {
     this.isOpen = true;
     this.modalEl.classList.remove('hidden');
@@ -208,7 +199,6 @@ class PianoRollModal {
     this.syncLoopBtn();
     this.startPlayheadAnimation();
 
-    // Scroll to middle register (around C4)
     const middleY = (this.maxMidi - 60) * this.noteHeight;
     this.gridContainer.scrollTop = Math.max(0, middleY - 150);
   }
@@ -225,10 +215,10 @@ class PianoRollModal {
   syncPlayBtn() {
     const playBtn = this.modalEl.querySelector('#pr-play-btn');
     if (this.sequencer.isPlaying) {
-      playBtn.innerHTML = '<span>⏸ Tạm dừng</span>';
+      playBtn.innerHTML = '<span>⏸ Pause</span>';
       playBtn.classList.replace('bg-indigo-600', 'bg-amber-600');
     } else {
-      playBtn.innerHTML = '<span>▶ Phát</span>';
+      playBtn.innerHTML = '<span>▶ Play</span>';
       playBtn.classList.replace('bg-amber-600', 'bg-indigo-600');
     }
   }
@@ -242,7 +232,6 @@ class PianoRollModal {
     }
   }
 
-  // Render Left Vertical Piano Keys
   renderPianoKeys() {
     this.keysContainer.innerHTML = '';
     const totalHeight = this.numNotes * this.noteHeight;
@@ -262,10 +251,8 @@ class PianoRollModal {
       }`;
       keyEl.style.height = `${this.noteHeight}px`;
 
-      // Only label C notes and sharps for cleaner look
       keyEl.textContent = (pitchClass === 0 || isBlack) ? `${noteName}${octave}` : (pitchClass === 0 ? `C${octave}` : '');
 
-      // Click piano key to preview note
       keyEl.addEventListener('pointerdown', async () => {
         await this.audio.init();
         this.audio.playNote(midi, null, 1.2, 95);
@@ -277,7 +264,6 @@ class PianoRollModal {
     }
   }
 
-  // Resize canvas to match total beats and pitches
   resizeAndDraw() {
     const totalBeats = Math.max(8, this.sequencer.getTotalBeats());
     const totalWidth = totalBeats * this.pixelsPerBeat;
@@ -292,7 +278,6 @@ class PianoRollModal {
     this.draw();
   }
 
-  // Render Time Ruler (Bars & Beats header)
   renderRuler(totalBeats) {
     this.rulerEl.innerHTML = '';
     const beatsPerBar = this.sequencer.beatsPerBar;
@@ -302,12 +287,11 @@ class PianoRollModal {
       const barEl = document.createElement('div');
       barEl.className = 'border-r border-slate-700 px-2 flex-shrink-0 flex items-center font-bold text-indigo-300';
       barEl.style.width = `${beatsPerBar * this.pixelsPerBeat}px`;
-      barEl.textContent = `Khuông ${b + 1}`;
+      barEl.textContent = `Bar ${b + 1}`;
       this.rulerEl.appendChild(barEl);
     }
   }
 
-  // Draw Grid and MIDI Notes
   draw() {
     if (!this.ctx) return;
     const w = this.canvasEl.width;
@@ -317,7 +301,7 @@ class PianoRollModal {
 
     this.ctx.clearRect(0, 0, w, h);
 
-    // 1. Draw Background Rows for Pitch Keys (alternating dark shades for black/white keys)
+    // 1. Draw Background Rows for Pitch Keys
     const blackNoteIndices = [1, 3, 6, 8, 10];
     for (let midi = this.maxMidi; midi >= this.minMidi; midi--) {
       const rowIndex = this.maxMidi - midi;
@@ -328,7 +312,6 @@ class PianoRollModal {
       this.ctx.fillStyle = isBlack ? '#090d16' : '#111827';
       this.ctx.fillRect(0, y, w, this.noteHeight);
 
-      // Horizontal pitch divider line
       this.ctx.strokeStyle = '#1e293b';
       this.ctx.lineWidth = 1;
       this.ctx.beginPath();
@@ -336,7 +319,6 @@ class PianoRollModal {
       this.ctx.lineTo(w, y + this.noteHeight);
       this.ctx.stroke();
 
-      // Octave boundary line (C note)
       if (pc === 0) {
         this.ctx.strokeStyle = '#334155';
         this.ctx.lineWidth = 1.5;
@@ -347,12 +329,11 @@ class PianoRollModal {
       }
     }
 
-    // 2. Draw Vertical Grid Lines (Bars, Beats, Subdivisions)
+    // 2. Draw Vertical Grid Lines
     for (let beat = 0; beat <= totalBeats; beat++) {
       const x = beat * this.pixelsPerBeat;
       const isBarStart = (beat % beatsPerBar === 0);
 
-      // 1/2 beat subdivision line
       if (beat < totalBeats) {
         const subX = x + this.pixelsPerBeat / 2;
         this.ctx.strokeStyle = 'rgba(30, 41, 59, 0.4)';
@@ -381,7 +362,6 @@ class PianoRollModal {
       const noteW = Math.max(6, note.duration * this.pixelsPerBeat - 2);
       const noteH = this.noteHeight - 3;
 
-      // Color scheme: Bass notes in Emerald/Teal; Upper chord voices in Indigo/Cyan
       const gradient = this.ctx.createLinearGradient(x, y, x + noteW, y);
       if (note.isBass) {
         gradient.addColorStop(0, '#10b981');
@@ -391,14 +371,12 @@ class PianoRollModal {
         gradient.addColorStop(1, '#6366f1');
       }
 
-      // Rounded rectangle note block
       this.ctx.fillStyle = gradient;
       this.ctx.strokeStyle = note.isBass ? '#34d399' : '#818cf8';
       this.ctx.lineWidth = 1;
 
       this.roundRect(this.ctx, x, y, noteW, noteH, 3, true, true);
 
-      // Note text label inside block
       if (noteW > 24) {
         const pc = note.midi % 12;
         const oct = Math.floor(note.midi / 12) - 1;
@@ -409,7 +387,6 @@ class PianoRollModal {
     });
   }
 
-  // Draw rounded rectangle helper
   roundRect(ctx, x, y, width, height, radius, fill, stroke) {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
@@ -426,7 +403,6 @@ class PianoRollModal {
     if (stroke) ctx.stroke();
   }
 
-  // Handle click on canvas to add or remove notes ("vẽ midi")
   async handleCanvasClick(e) {
     const rect = this.canvasEl.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -434,11 +410,9 @@ class PianoRollModal {
 
     const rowIndex = Math.floor(y / this.noteHeight);
     const midi = this.maxMidi - rowIndex;
-    // Quantize click to nearest half-beat (0.5)
     const rawBeat = x / this.pixelsPerBeat;
     const quantizedBeat = Math.floor(rawBeat * 2) / 2;
 
-    // Check if clicked an existing note to delete it
     const existingIndex = this.customNotes.findIndex(note => {
       const noteX = note.startBeat * this.pixelsPerBeat;
       const noteW = note.duration * this.pixelsPerBeat;
@@ -446,13 +420,11 @@ class PianoRollModal {
     });
 
     if (existingIndex !== -1) {
-      // Remove note
       this.customNotes.splice(existingIndex, 1);
       this.draw();
       return;
     }
 
-    // Add new note (default 1 or 2 beats)
     await this.audio.init();
     this.audio.playNote(midi, null, 1.2, 95);
 
@@ -468,7 +440,6 @@ class PianoRollModal {
     this.draw();
   }
 
-  // Animated Playhead cursor tracking Web Audio time
   startPlayheadAnimation() {
     const animate = () => {
       if (!this.isOpen) return;
@@ -476,9 +447,6 @@ class PianoRollModal {
       if (this.sequencer.isPlaying) {
         this.playheadEl.classList.remove('hidden');
         const totalBeats = this.sequencer.getTotalBeats();
-        const secPerBeat = this.sequencer.getSecondsPerBeat();
-
-        // Calculate continuous beat position
         const currentBeat = (this.sequencer.currentBeatIndex % totalBeats);
         const playheadX = currentBeat * this.pixelsPerBeat;
         this.playheadEl.style.left = `${playheadX}px`;
