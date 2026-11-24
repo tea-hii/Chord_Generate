@@ -57,6 +57,31 @@ document.addEventListener('DOMContentLoaded', () => {
   const metronomeVolumeSlider = document.getElementById('metronome-volume');
   const beatLeds = document.querySelectorAll('.beat-led');
 
+  // Minimalist 2D SVGs
+  const SVG_PENCIL = `
+    <svg class="w-3.5 h-3.5 inline-block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+      <path d="m15 5 4 4"/>
+    </svg>
+  `;
+
+  const SVG_TRASH = `
+    <svg class="w-3.5 h-3.5 inline-block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 6h18"/>
+      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+      <line x1="10" x2="10" y1="11" y2="17"/>
+      <line x1="14" x2="14" y1="11" y2="17"/>
+    </svg>
+  `;
+
+  const SVG_CLOSE = `
+    <svg class="w-3 h-3 inline-block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  `;
+
   // 1. Populate Root Key Buttons (C, C#, D, D#, E, F, F#, G, G#, A, A#, B)
   const rootNotes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   rootKeyButtonsContainer.innerHTML = '';
@@ -106,11 +131,11 @@ document.addEventListener('DOMContentLoaded', () => {
     instrumentSelect.appendChild(optGroup);
   }
 
-  // 3. Populate Progression Presets
+  // 3. Populate Progression Presets (Compact clean labels to prevent overflow)
   PROGRESSION_TEMPLATES.forEach((tpl, idx) => {
     const opt = document.createElement('option');
     opt.value = idx;
-    opt.textContent = `${tpl.genre}: ${tpl.name}`;
+    opt.textContent = tpl.name;
     presetsSelect.appendChild(opt);
   });
 
@@ -120,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
     state.currentScaleChords = chords;
     state.borrowedChords = borrowed;
 
-    // Update Header Display
     const modeName = SCALE_MODES[state.selectedMode] ? SCALE_MODES[state.selectedMode].name : 'Major';
     currentKeyTitle.textContent = `${state.selectedRoot} ${modeName}`;
 
@@ -168,7 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.classList.contains('add-chord-btn') || sequencer.isRecording) {
           sequencer.recordChord(chord);
         } else {
-          // If an empty slot or any slot is selected, assign chord to it
           if (sequencer.selectedSlotIndex !== -1) {
             sequencer.addChord(chord);
           } else if (sequencer.slots.length === 0) {
@@ -177,7 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-      // Drag and Drop Start
       pad.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('application/json', JSON.stringify(chord));
         e.dataTransfer.effectAllowed = 'copy';
@@ -247,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 5. Render Progression Timeline Slots (With Empty Slots, Trash Bin, Edit Pencil & Drag-and-Drop)
+  // 5. Render Progression Timeline Slots (With 2D Minimalist Icons, Empty Slots & 1/16th Grid)
   function renderTimelineSlots(slots) {
     timelineSlots.innerHTML = '';
 
@@ -279,10 +301,14 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
             <span class="font-mono bg-slate-950 px-1.5 py-0.5 rounded text-slate-400 text-[10px]">Bar ${barNum}</span>
             <div class="flex items-center space-x-1">
-              <!-- Edit Pencil Button -->
-              <button type="button" class="edit-slot-btn px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-semibold transition cursor-pointer" title="Edit Duration (${fractionStr}) & Velocity">✏️ Edit</button>
-              <!-- Delete Empty Slot Trash Bin -->
-              <button type="button" class="delete-slot-btn px-1.5 py-0.5 rounded bg-rose-950/40 hover:bg-rose-900 text-rose-400 text-[11px] transition cursor-pointer" title="Delete Empty Slot Entirely">🗑️</button>
+              <!-- Minimalist 2D Pencil Edit Button -->
+              <button type="button" class="edit-slot-btn p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer flex items-center justify-center" title="Edit Duration (${fractionStr}) & Velocity">
+                ${SVG_PENCIL}
+              </button>
+              <!-- Minimalist 2D Trash Bin Delete Slot Button -->
+              <button type="button" class="delete-slot-btn p-1 rounded bg-rose-950/40 hover:bg-rose-900 text-rose-400 hover:text-rose-200 transition cursor-pointer flex items-center justify-center" title="Delete Empty Slot Entirely">
+                ${SVG_TRASH}
+              </button>
             </div>
           </div>
           
@@ -293,7 +319,6 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <div class="flex items-center justify-between mt-1 pt-1.5 border-t border-slate-800 text-[11px] text-slate-400">
-            <!-- Duration Badge (Click to open edit modal) -->
             <button type="button" class="edit-duration-badge font-mono text-[10px] bg-slate-950 px-2 py-0.5 rounded text-sky-400 border border-slate-800 hover:bg-slate-800 transition cursor-pointer" title="Click to edit duration">
               ${fractionStr} ▾
             </button>
@@ -308,14 +333,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         slotEl.innerHTML = `
           <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-            <span class="font-mono bg-slate-900 px-1.5 py-0.5 rounded text-indigo-300 text-[10px]">Bar ${barNum}</span>
+            <span class="font-mono bg-slate-950 px-1.5 py-0.5 rounded text-indigo-300 text-[10px]">Bar ${barNum}</span>
             <div class="flex items-center space-x-1">
-              <!-- Edit Pencil Button -->
-              <button type="button" class="edit-slot-btn px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] transition cursor-pointer" title="Edit Duration (${fractionStr}) & Velocity">✏️</button>
-              <!-- Trash Button: Clears chord from slot, KEEPING the slot empty in place -->
-              <button type="button" class="clear-chord-btn px-1.5 py-0.5 rounded bg-amber-950/40 hover:bg-amber-900 text-amber-300 text-[11px] transition cursor-pointer" title="Clear chord (keep empty slot in place)">🗑️</button>
-              <!-- Delete Entire Slot Button -->
-              <button type="button" class="delete-slot-btn px-1.5 py-0.5 rounded bg-slate-800 hover:bg-rose-900 text-slate-400 hover:text-white text-[11px] transition cursor-pointer" title="Remove slot completely">✕</button>
+              <!-- Minimalist 2D Pencil Edit Button -->
+              <button type="button" class="edit-slot-btn p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer flex items-center justify-center" title="Edit Duration (${fractionStr}) & Velocity">
+                ${SVG_PENCIL}
+              </button>
+              <!-- Minimalist 2D Trash Button: Clears chord from slot, KEEPING the slot empty in place -->
+              <button type="button" class="clear-chord-btn p-1 rounded bg-amber-950/40 hover:bg-amber-900 text-amber-300 transition cursor-pointer flex items-center justify-center" title="Clear chord (keep empty slot in place)">
+                ${SVG_TRASH}
+              </button>
+              <!-- Minimalist 2D Close Button: Delete Entire Slot -->
+              <button type="button" class="delete-slot-btn p-1 rounded bg-slate-800 hover:bg-rose-900 text-slate-400 hover:text-white transition cursor-pointer flex items-center justify-center" title="Remove slot completely">
+                ${SVG_CLOSE}
+              </button>
             </div>
           </div>
           
@@ -325,7 +356,6 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <div class="flex items-center justify-between mt-1 pt-1.5 border-t border-slate-700/60 text-xs">
-            <!-- Duration Badge (Click to open edit modal) -->
             <button type="button" class="edit-duration-badge font-mono text-[10px] bg-slate-950 px-2 py-0.5 rounded text-sky-400 border border-slate-800 hover:bg-slate-800 transition cursor-pointer" title="Click to edit duration">
               ${fractionStr} ▾
             </button>
@@ -693,19 +723,19 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     {
       id: 'slot_init_2',
-      chord: null, // Empty Slot 2
+      chord: null,
       beats: 4.0,
       velocity: 90
     },
     {
       id: 'slot_init_3',
-      chord: null, // Empty Slot 3
+      chord: null,
       beats: 4.0,
       velocity: 90
     },
     {
       id: 'slot_init_4',
-      chord: null, // Empty Slot 4
+      chord: null,
       beats: 4.0,
       velocity: 90
     }

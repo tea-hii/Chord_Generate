@@ -1,43 +1,47 @@
-// Progression Sequencer, Precision Audio Clock, Looper, Recorder, and Fraction Lengths
+// Progression Sequencer, Precision Audio Clock, Looper, Recorder, and 1/16th Grid Fraction Lengths
 // Built with Web Audio API lookahead scheduler to ensure zero drift / jitter
 
-const DURATION_FRACTIONS = [
-  { fraction: '1/16', beats: 0.25, label: '1/16 (Sixteenth Note)' },
-  { fraction: '1/8',  beats: 0.5,  label: '1/8 (Eighth Note)' },
-  { fraction: '3/16', beats: 0.75, label: '3/16 (Dotted Eighth)' },
-  { fraction: '1/4',  beats: 1.0,  label: '1/4 (Quarter Note)' },
-  { fraction: '3/8',  beats: 1.5,  label: '3/8 (Dotted Quarter)' },
-  { fraction: '1/2',  beats: 2.0,  label: '1/2 (Half Note / 2/4)' },
-  { fraction: '3/4',  beats: 3.0,  label: '3/4 (Dotted Half)' },
-  { fraction: '4/4',  beats: 4.0,  label: '4/4 (Whole Note / 1 Bar)' },
-  { fraction: '5/4',  beats: 5.0,  label: '5/4 (5 Beats)' },
-  { fraction: '6/4',  beats: 6.0,  label: '6/4 (1.5 Bars)' },
-  { fraction: '7/4',  beats: 7.0,  label: '7/4 (7 Beats)' },
-  { fraction: '2',    beats: 8.0,  label: '2 (Double Note / 2 Bars)' },
-];
-
-function beatsToFraction(beats) {
-  const match = DURATION_FRACTIONS.find(df => Math.abs(df.beats - beats) < 0.05);
-  if (match) return match.fraction;
-  // Fallback representation
-  if (beats === 4) return '4/4';
-  if (beats === 2) return '1/2';
-  if (beats === 1) return '1/4';
-  if (beats === 8) return '2';
-  return `${beats}/4`;
+// Greatest common divisor helper
+function gcd(a, b) {
+  return b === 0 ? a : gcd(b, a % b);
 }
 
-function fractionToBeats(fraction) {
-  const match = DURATION_FRACTIONS.find(df => df.fraction === fraction);
-  if (match) return match.beats;
-  if (fraction === '2') return 8.0;
-  if (fraction.includes('/')) {
-    const [num, den] = fraction.split('/').map(Number);
+// Convert 16th count (1..32) to musical fraction string
+function sixteenthsToFraction(sixteenths) {
+  const s = Math.max(1, Math.min(32, Math.round(sixteenths)));
+  if (s === 16) return '4/4 (1 Bar)';
+  if (s === 32) return '2 (2 Bars)';
+
+  const d = gcd(s, 16);
+  const num = s / d;
+  const den = 16 / d;
+
+  if (den === 4) return `${num}/4`;
+  if (den === 2) return `${num}/2`;
+  if (den === 8) return `${num}/8`;
+  if (den === 16) return `${num}/16`;
+  if (den === 1) return `${num} Bars`;
+  return `${num}/${den}`;
+}
+
+// Convert beats (quarter notes) to fractional string
+function beatsToFraction(beats) {
+  const sixteenths = Math.max(1, Math.min(32, Math.round(beats / 0.25)));
+  return sixteenthsToFraction(sixteenths);
+}
+
+// Convert fractional string to beats (quarter notes)
+function fractionToBeats(fractionStr) {
+  if (!fractionStr) return 4.0;
+  const clean = fractionStr.split(' ')[0].trim();
+  if (clean === '2') return 8.0;
+  if (clean.includes('/')) {
+    const [num, den] = clean.split('/').map(Number);
     if (!isNaN(num) && !isNaN(den) && den > 0) {
-      return (num / den) * 4; // normalized to quarter notes in 4/4
+      return (num / den) * 4.0;
     }
   }
-  const parsed = parseFloat(fraction);
+  const parsed = parseFloat(clean);
   return isNaN(parsed) ? 4.0 : parsed;
 }
 
@@ -131,7 +135,7 @@ class Sequencer {
   }
 
   // Add an empty chord slot
-  addEmptySlot(beats = 4, velocity = 90) {
+  addEmptySlot(beats = 4.0, velocity = 90) {
     const newSlot = {
       id: 'slot_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
       chord: null,
@@ -319,7 +323,6 @@ class Sequencer {
     for (let i = 0; i < this.slots.length; i++) {
       const slot = this.slots[i];
       const slotStart = slot.startBeat % totalBeats;
-      // Allow slight floating point tolerance for fractional beat starts
       if (Math.abs(slotStart - beatIdx) < 0.15) {
         if (slot.chord && slot.chord.midiNotes) {
           const chordDuration = slot.beats * secPerBeat * 0.95;
@@ -392,7 +395,7 @@ class Sequencer {
   }
 }
 
-window.DURATION_FRACTIONS = DURATION_FRACTIONS;
+window.sixteenthsToFraction = sixteenthsToFraction;
 window.beatsToFraction = beatsToFraction;
 window.fractionToBeats = fractionToBeats;
 window.Sequencer = Sequencer;

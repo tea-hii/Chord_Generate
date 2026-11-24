@@ -1,5 +1,5 @@
-// Slot Edit Pop-up Modal
-// Configures slot duration as musical fractions (1/16 to 2 bars), velocity, and MIDI options
+// Slot Edit Pop-up Modal with 1/16th Precision Fraction Slider and Minimalist 2D Icons
+// Configures slot duration with any 1/16th subdivision (e.g. 5/8, 5/16, 7/16, 3/8...) up to 2 bars
 
 class SlotModal {
   constructor(pianoRollModal) {
@@ -10,7 +10,7 @@ class SlotModal {
     this.onClearChord = null;
     this.onDeleteSlot = null;
 
-    this.selectedFractionIndex = 7; // Default 4/4 (index 7 in DURATION_FRACTIONS)
+    this.selectedSixteenths = 16; // 16 sixteenths = 4.0 beats = 4/4 (1 Bar)
     this.selectedVelocity = 90;
 
     this.buildModal();
@@ -28,41 +28,59 @@ class SlotModal {
         <!-- Header -->
         <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-slate-950/80">
           <div class="flex items-center space-x-2.5">
-            <span class="text-xl">✏️</span>
+            <!-- 2D Minimalist Pencil SVG -->
+            <div class="w-8 h-8 rounded-lg bg-indigo-950/60 border border-indigo-700/60 flex items-center justify-center text-indigo-400">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                <path d="m15 5 4 4"/>
+              </svg>
+            </div>
             <div>
               <h3 id="modal-slot-title" class="text-sm font-bold text-white">Edit Chord Slot</h3>
-              <p id="modal-slot-subtitle" class="text-[11px] text-slate-400">Configure duration meter, velocity, and voicing</p>
+              <p id="modal-slot-subtitle" class="text-[11px] text-slate-400">Configure duration in 1/16th steps, velocity, and voicing</p>
             </div>
           </div>
-          <button id="modal-close-btn" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-sm font-bold transition cursor-pointer">
-            ✕
+          <button id="modal-close-btn" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
           </button>
         </div>
 
         <!-- Body -->
         <div class="p-5 flex flex-col gap-4 text-xs">
           
-          <!-- Section 1: Musical Meter Duration / Length (Fractions from 1/16 to 2) -->
+          <!-- Section 1: Musical Meter Duration / Length (Fractions in 1/16 increments from 1/16 to 2) -->
           <div class="flex flex-col gap-2">
             <div class="flex items-center justify-between">
               <label class="font-bold text-slate-200">Duration Meter (Length):</label>
               <span id="modal-fraction-display" class="font-mono font-bold text-sm text-sky-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">4/4 (1 Bar)</span>
             </div>
 
-            <!-- Slider across fractions -->
-            <input id="modal-fraction-slider" type="range" min="0" max="11" step="1" value="7" class="w-full accent-sky-400 cursor-pointer my-1" />
+            <!-- Continuous 1/16th range slider: 1 to 32 sixteenths -->
+            <input id="modal-fraction-slider" type="range" min="1" max="32" step="1" value="16" class="w-full accent-sky-400 cursor-pointer my-1" />
 
-            <!-- Quick Fraction Pills -->
-            <div class="flex flex-wrap items-center gap-1.5 pt-1">
+            <div class="flex items-center justify-between text-[10px] text-slate-500 font-mono">
+              <span>1/16 (Min)</span>
+              <span id="modal-sixteenth-counter" class="text-sky-400 font-semibold">16 / 16</span>
+              <span>2 (32/16 = 2 Bars Max)</span>
+            </div>
+
+            <!-- Quick Fraction Preset Pills -->
+            <div class="flex flex-wrap items-center gap-1.5 pt-1.5">
               <span class="text-[10px] text-slate-500 mr-0.5">Quick:</span>
-              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-frac="1/16">1/16</button>
-              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-frac="1/8">1/8</button>
-              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-frac="3/16">3/16</button>
-              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-frac="1/4">1/4</button>
-              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-frac="3/8">3/8</button>
-              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-frac="1/2">1/2</button>
-              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-frac="4/4">4/4</button>
-              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-frac="2">2 (2 Bars)</button>
+              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-sixteenths="1">1/16</button>
+              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-sixteenths="2">1/8</button>
+              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-sixteenths="3">3/16</button>
+              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-sixteenths="4">1/4</button>
+              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-sixteenths="5">5/16</button>
+              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-sixteenths="6">3/8</button>
+              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-sixteenths="8">1/2</button>
+              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-sixteenths="10">5/8</button>
+              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-sixteenths="12">3/4</button>
+              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-sixteenths="16">4/4</button>
+              <button type="button" class="quick-frac-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px] border border-slate-700" data-sixteenths="32">2</button>
             </div>
           </div>
 
@@ -92,11 +110,18 @@ class SlotModal {
 
         </div>
 
-        <!-- Footer Actions -->
+        <!-- Footer Actions with Minimalist 2D Icons -->
         <div class="px-5 py-3.5 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between gap-2 text-xs">
-          <!-- Clear Chord button (keeps slot empty) -->
-          <button id="modal-clear-chord-btn" type="button" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-950/30 transition flex items-center gap-1" title="Clear chord from slot but keep slot empty in place">
-            <span>🗑️ Clear Chord</span>
+          <!-- Clear Chord button (2D Trash Icon) -->
+          <button id="modal-clear-chord-btn" type="button" class="px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-950/30 transition flex items-center gap-1.5" title="Clear chord from slot but keep slot empty in place">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18"/>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+              <line x1="10" x2="10" y1="11" y2="17"/>
+              <line x1="14" x2="14" y1="11" y2="17"/>
+            </svg>
+            <span>Clear Chord</span>
           </button>
 
           <div class="flex items-center space-x-2">
@@ -118,6 +143,7 @@ class SlotModal {
     this.subtitleEl = this.modalEl.querySelector('#modal-slot-subtitle');
     this.fractionDisplay = this.modalEl.querySelector('#modal-fraction-display');
     this.fractionSlider = this.modalEl.querySelector('#modal-fraction-slider');
+    this.sixteenthCounter = this.modalEl.querySelector('#modal-sixteenth-counter');
     this.velocityInput = this.modalEl.querySelector('#modal-velocity-input');
     this.velocitySlider = this.modalEl.querySelector('#modal-velocity-slider');
     this.velocityLabel = this.modalEl.querySelector('#modal-velocity-label');
@@ -137,20 +163,17 @@ class SlotModal {
       if (e.target === this.modalEl) this.close();
     });
 
-    // Fraction Slider change
+    // 1/16th Fraction Slider (1 to 32)
     this.fractionSlider.addEventListener('input', (e) => {
-      const idx = parseInt(e.target.value, 10);
-      this.setFractionByIndex(idx);
+      const s = parseInt(e.target.value, 10);
+      this.setSixteenths(s);
     });
 
-    // Quick Fraction buttons
+    // Quick Fraction pills
     this.modalEl.querySelectorAll('.quick-frac-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const frac = btn.dataset.frac;
-        const idx = DURATION_FRACTIONS.findIndex(df => df.fraction === frac);
-        if (idx !== -1) {
-          this.setFractionByIndex(idx);
-        }
+        const s = parseInt(btn.dataset.sixteenths, 10);
+        this.setSixteenths(s);
       });
     });
 
@@ -174,8 +197,7 @@ class SlotModal {
 
     // Save Changes
     saveBtn.addEventListener('click', () => {
-      const selectedDf = DURATION_FRACTIONS[this.selectedFractionIndex];
-      const beats = selectedDf ? selectedDf.beats : 4.0;
+      const beats = this.selectedSixteenths * 0.25;
       if (this.onSave) {
         this.onSave(this.currentSlotIndex, {
           beats: beats,
@@ -202,13 +224,12 @@ class SlotModal {
     });
   }
 
-  setFractionByIndex(idx) {
-    this.selectedFractionIndex = Math.max(0, Math.min(DURATION_FRACTIONS.length - 1, idx));
-    this.fractionSlider.value = this.selectedFractionIndex;
-    const item = DURATION_FRACTIONS[this.selectedFractionIndex];
-    if (item) {
-      this.fractionDisplay.textContent = `${item.fraction} (${item.label.split(' (')[1] || item.label}`;
-    }
+  setSixteenths(s) {
+    this.selectedSixteenths = Math.max(1, Math.min(32, s));
+    this.fractionSlider.value = this.selectedSixteenths;
+    const fracText = sixteenthsToFraction(this.selectedSixteenths);
+    this.fractionDisplay.textContent = fracText;
+    this.sixteenthCounter.textContent = `${this.selectedSixteenths}/16 (${fracText.split(' ')[0]})`;
   }
 
   updateVelocityLabel(val) {
@@ -235,14 +256,13 @@ class SlotModal {
       this.modalEl.querySelector('#modal-clear-chord-btn').classList.remove('hidden');
     } else {
       this.titleEl.textContent = 'Edit Empty Chord Slot';
-      this.subtitleEl.textContent = 'Configure slot duration before dropping a chord';
+      this.subtitleEl.textContent = 'Configure duration meter in 1/16th steps before dropping a chord';
       this.modalEl.querySelector('#modal-clear-chord-btn').classList.add('hidden');
     }
 
-    // Match Fraction
-    const fracStr = beatsToFraction(slot.beats);
-    const fracIdx = DURATION_FRACTIONS.findIndex(df => df.fraction === fracStr);
-    this.setFractionByIndex(fracIdx !== -1 ? fracIdx : 7);
+    // Convert slot.beats to sixteenths (0.25 beat = 1 sixteenth)
+    const sixteenths = Math.max(1, Math.min(32, Math.round((slot.beats || 4.0) / 0.25)));
+    this.setSixteenths(sixteenths);
 
     // Match Velocity
     const vel = slot.velocity || (slot.chord && slot.chord.velocity) || 90;

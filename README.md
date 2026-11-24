@@ -12,12 +12,12 @@ Built entirely with standard **HTML5 and Web Audio API**, requiring zero backend
 - **Add Empty Slots**: Click **"+ Add Slot"** to insert an empty chord slot (`+ Drop Chord Here`).
 - **Drag & Drop**: Drag any Scale Degree Chord (I, ii, iii, IV, V...) or Borrowed Chord and drop it directly into any slot!
 - **Sound on Click**: Clicking any chord in the progression track plays its audio voicing in real-time.
-- **Trash Bin (🗑️) Functionality**:
+- **Minimalist 2D Vector Trash Bin Functionality**:
   - Clicking the trash bin on a **filled chord slot** clears the chord from that slot while **keeping the empty slot in place** so you can drop a different chord into it without disrupting your progression arrangement.
   - Clicking the trash bin or remove icon (`✕`) on an **empty slot** deletes the slot entirely from the track.
-- **Pencil Edit Button (✏️) & Pop-up Modal**:
+- **Minimalist 2D Vector Pencil Edit Button & Pop-up Modal**:
   - Click the pencil icon on any slot (or click its duration badge) to open the **Slot Configuration Modal**.
-  - **Musical Meter Fractions**: Change durations smoothly from `1/16` up to `2` (2 full bars), including `1/8`, `3/16`, `1/4`, `3/8`, `1/2`, and `4/4`.
+  - **Fine-Grained 1/16th Subdivision Meter**: Change durations continuously in precise `1/16th` increments from `1/16` up to `2` (2 full bars = 32 sixteenths), allowing any odd or even fraction such as `1/16`, `3/16`, `5/16`, `3/8` (6/16), `5/8` (10/16), `7/16`, `1/4`, `1/2`, `3/4`, `4/4`, or `2`.
   - **Velocity Control**: Set dynamic velocity numerically (1 to 127) with dynamic label feedback (`p`, `mp`, `mf`, `f`, `ff`).
   - **MIDI Voicing**: Direct link to open the slot in the MIDI Piano Roll Grid.
 
