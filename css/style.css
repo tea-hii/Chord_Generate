@@ -85,6 +85,33 @@ body {
   background: linear-gradient(180deg, rgba(99, 102, 241, 0.3), rgba(30, 41, 59, 0.8)) !important;
 }
 
+/* Dragging styling */
+.chord-pad[draggable="true"] {
+  cursor: grab;
+}
+.chord-pad[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* Empty slot styling */
+.empty-slot {
+  border: 2px dashed rgba(75, 85, 99, 0.6);
+  background: rgba(15, 23, 42, 0.6);
+  transition: all 0.15s ease;
+}
+.empty-slot:hover {
+  border-color: rgba(99, 102, 241, 0.8);
+  background: rgba(30, 41, 59, 0.6);
+}
+
+/* Drop target hover highlight */
+.drop-target-active {
+  border-color: #38bdf8 !important;
+  background: rgba(56, 189, 248, 0.15) !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+  transform: scale(1.03);
+}
+
 /* Root note selector buttons */
 .root-key-btn {
   transition: all 0.12s ease;

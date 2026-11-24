@@ -1,5 +1,45 @@
-// Progression Sequencer, Precision Audio Clock, Looper, Recorder, and Tap Tempo
+// Progression Sequencer, Precision Audio Clock, Looper, Recorder, and Fraction Lengths
 // Built with Web Audio API lookahead scheduler to ensure zero drift / jitter
+
+const DURATION_FRACTIONS = [
+  { fraction: '1/16', beats: 0.25, label: '1/16 (Sixteenth Note)' },
+  { fraction: '1/8',  beats: 0.5,  label: '1/8 (Eighth Note)' },
+  { fraction: '3/16', beats: 0.75, label: '3/16 (Dotted Eighth)' },
+  { fraction: '1/4',  beats: 1.0,  label: '1/4 (Quarter Note)' },
+  { fraction: '3/8',  beats: 1.5,  label: '3/8 (Dotted Quarter)' },
+  { fraction: '1/2',  beats: 2.0,  label: '1/2 (Half Note / 2/4)' },
+  { fraction: '3/4',  beats: 3.0,  label: '3/4 (Dotted Half)' },
+  { fraction: '4/4',  beats: 4.0,  label: '4/4 (Whole Note / 1 Bar)' },
+  { fraction: '5/4',  beats: 5.0,  label: '5/4 (5 Beats)' },
+  { fraction: '6/4',  beats: 6.0,  label: '6/4 (1.5 Bars)' },
+  { fraction: '7/4',  beats: 7.0,  label: '7/4 (7 Beats)' },
+  { fraction: '2',    beats: 8.0,  label: '2 (Double Note / 2 Bars)' },
+];
+
+function beatsToFraction(beats) {
+  const match = DURATION_FRACTIONS.find(df => Math.abs(df.beats - beats) < 0.05);
+  if (match) return match.fraction;
+  // Fallback representation
+  if (beats === 4) return '4/4';
+  if (beats === 2) return '1/2';
+  if (beats === 1) return '1/4';
+  if (beats === 8) return '2';
+  return `${beats}/4`;
+}
+
+function fractionToBeats(fraction) {
+  const match = DURATION_FRACTIONS.find(df => df.fraction === fraction);
+  if (match) return match.beats;
+  if (fraction === '2') return 8.0;
+  if (fraction.includes('/')) {
+    const [num, den] = fraction.split('/').map(Number);
+    if (!isNaN(num) && !isNaN(den) && den > 0) {
+      return (num / den) * 4; // normalized to quarter notes in 4/4
+    }
+  }
+  const parsed = parseFloat(fraction);
+  return isNaN(parsed) ? 4.0 : parsed;
+}
 
 class Sequencer {
   constructor(audioEngine) {
@@ -8,40 +48,38 @@ class Sequencer {
     // Timing config
     this.bpm = 100;
     this.beatsPerBar = 4;
-    this.bars = 2; // Default 2 khuông nhạc as requested
+    this.bars = 2; // Default 2 bars
     this.isPlaying = false;
     this.isLooping = true;
     this.isRecording = false;
     this.isMetronomeOn = true;
 
-    // Progression slots: array of { chord: Object, beats: Number, bar: Number, beatInBar: Number }
+    // Progression slots: array of { id, chord: Object | null, beats: Number, velocity: Number }
     this.slots = [];
     this.selectedSlotIndex = -1;
 
     // Scheduling state
-    this.lookaheadMs = 25.0; // How often to check for events (ms)
-    this.scheduleAheadTime = 0.12; // How far ahead to schedule audio (seconds)
+    this.lookaheadMs = 25.0;
+    this.scheduleAheadTime = 0.12;
     this.timerId = null;
-    this.currentBeatIndex = 0; // Current global beat index (0 .. totalBeats - 1)
-    this.nextBeatTime = 0.0; // AudioContext time for the next beat
+    this.currentBeatIndex = 0;
+    this.nextBeatTime = 0.0;
 
     // Tap tempo tracking
     this.tapTimes = [];
     this.lastTapTimestamp = 0;
 
     // Callbacks for UI updates
-    this.onBeatChange = null; // (currentBeat, totalBeats, bar, beatInBar)
-    this.onSlotActive = null; // (slotIndex)
-    this.onSlotsUpdate = null; // (slots)
-    this.onStateChange = null; // (state)
+    this.onBeatChange = null;
+    this.onSlotActive = null;
+    this.onSlotsUpdate = null;
+    this.onStateChange = null;
   }
 
-  // Get total beats for current measures
   getTotalBeats() {
     return this.bars * this.beatsPerBar;
   }
 
-  // Seconds per beat based on current BPM
   getSecondsPerBeat() {
     return 60.0 / this.bpm;
   }
@@ -65,18 +103,16 @@ class Sequencer {
     if (this.onStateChange) this.onStateChange(this.getState());
   }
 
-  // Handle Tap Tempo button clicks
   tapTempo() {
     const now = performance.now();
     if (now - this.lastTapTimestamp > 2500) {
-      // Reset if paused longer than 2.5 seconds
       this.tapTimes = [];
     }
     this.lastTapTimestamp = now;
     this.tapTimes.push(now);
 
     if (this.tapTimes.length > 5) {
-      this.tapTimes.shift(); // Keep last 5 taps
+      this.tapTimes.shift();
     }
 
     if (this.tapTimes.length >= 2) {
@@ -94,13 +130,37 @@ class Sequencer {
     return null;
   }
 
-  // Add a chord to the progression
-  addChord(chord, beats = null) {
+  // Add an empty chord slot
+  addEmptySlot(beats = 4, velocity = 90) {
+    const newSlot = {
+      id: 'slot_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      chord: null,
+      beats: beats,
+      velocity: velocity
+    };
+    this.slots.push(newSlot);
+    this.rebalanceSlotsToBeats();
+    if (this.onSlotsUpdate) this.onSlotsUpdate(this.slots);
+    return newSlot;
+  }
+
+  // Add or assign chord
+  addChord(chord, beats = null, velocity = 90) {
     const defaultBeats = beats || (this.beatsPerBar === 3 ? 3 : 4);
     
-    // If a slot is explicitly selected, replace it
+    // If a slot is explicitly selected (whether empty or filled), assign to it
     if (this.selectedSlotIndex >= 0 && this.selectedSlotIndex < this.slots.length) {
       this.slots[this.selectedSlotIndex].chord = chord;
+      if (chord.velocity) this.slots[this.selectedSlotIndex].velocity = chord.velocity;
+      if (this.onSlotsUpdate) this.onSlotsUpdate(this.slots);
+      return;
+    }
+
+    // Check if there is an empty slot that can be filled first
+    const firstEmptyIndex = this.slots.findIndex(s => s.chord === null);
+    if (firstEmptyIndex !== -1) {
+      this.slots[firstEmptyIndex].chord = chord;
+      if (chord.velocity) this.slots[firstEmptyIndex].velocity = chord.velocity;
       if (this.onSlotsUpdate) this.onSlotsUpdate(this.slots);
       return;
     }
@@ -109,14 +169,23 @@ class Sequencer {
     this.slots.push({
       id: 'slot_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
       chord: chord,
-      beats: defaultBeats
+      beats: defaultBeats,
+      velocity: velocity
     });
 
     this.rebalanceSlotsToBeats();
     if (this.onSlotsUpdate) this.onSlotsUpdate(this.slots);
   }
 
-  // Remove a chord slot
+  // Clear chord from slot but keep slot empty in place
+  clearSlotChord(index) {
+    if (index >= 0 && index < this.slots.length) {
+      this.slots[index].chord = null;
+      if (this.onSlotsUpdate) this.onSlotsUpdate(this.slots);
+    }
+  }
+
+  // Completely delete slot from progression
   removeSlot(index) {
     if (index >= 0 && index < this.slots.length) {
       this.slots.splice(index, 1);
@@ -130,41 +199,48 @@ class Sequencer {
     }
   }
 
-  // Clear all slots
+  // Update slot properties (beats, velocity, etc.)
+  updateSlot(index, updates) {
+    if (index >= 0 && index < this.slots.length) {
+      Object.assign(this.slots[index], updates);
+      if (updates.beats) {
+        this.rebalanceSlotsToBeats();
+      }
+      if (this.onSlotsUpdate) this.onSlotsUpdate(this.slots);
+    }
+  }
+
   clearSlots() {
     this.slots = [];
     this.selectedSlotIndex = -1;
     if (this.onSlotsUpdate) this.onSlotsUpdate(this.slots);
   }
 
-  // Set beats duration for a slot
   setSlotBeats(index, beats) {
     if (this.slots[index]) {
-      this.slots[index].beats = Math.max(1, parseInt(beats, 10));
+      this.slots[index].beats = Math.max(0.25, parseFloat(beats));
       this.rebalanceSlotsToBeats();
       if (this.onSlotsUpdate) this.onSlotsUpdate(this.slots);
     }
   }
 
-  // Calculate start beats for each slot in the timeline
   rebalanceSlotsToBeats() {
     let accumulatedBeat = 0;
-    this.slots.forEach((slot, idx) => {
+    this.slots.forEach((slot) => {
       slot.startBeat = accumulatedBeat;
       slot.endBeat = accumulatedBeat + slot.beats;
       accumulatedBeat += slot.beats;
     });
   }
 
-  // Load a full progression from chords array
   loadProgression(chordsList, beatsPerChord = 4) {
     this.slots = chordsList.map(ch => ({
       id: 'slot_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
       chord: ch,
-      beats: beatsPerChord
+      beats: beatsPerChord,
+      velocity: (ch && ch.velocity) ? ch.velocity : 90
     }));
 
-    // Auto-fit bars to contain all chords
     const totalBeats = chordsList.length * beatsPerChord;
     this.bars = Math.max(2, Math.ceil(totalBeats / this.beatsPerBar));
 
@@ -173,7 +249,6 @@ class Sequencer {
     if (this.onStateChange) this.onStateChange(this.getState());
   }
 
-  // Start playback
   async start() {
     await this.audio.init();
 
@@ -186,7 +261,6 @@ class Sequencer {
     if (this.onStateChange) this.onStateChange(this.getState());
   }
 
-  // Stop playback and reset
   stop() {
     this.isPlaying = false;
     if (this.timerId) {
@@ -199,7 +273,6 @@ class Sequencer {
     if (this.onStateChange) this.onStateChange(this.getState());
   }
 
-  // Toggle Play / Pause
   togglePlay() {
     if (this.isPlaying) {
       this.stop();
@@ -208,7 +281,6 @@ class Sequencer {
     }
   }
 
-  // Precision lookahead scheduling loop
   scheduler() {
     const totalBeats = this.getTotalBeats();
     const secPerBeat = this.getSecondsPerBeat();
@@ -216,16 +288,13 @@ class Sequencer {
     while (this.nextBeatTime < this.audio.getCurrentTime() + this.scheduleAheadTime) {
       this.scheduleBeat(this.currentBeatIndex, this.nextBeatTime);
 
-      // Advance clock
       this.nextBeatTime += secPerBeat;
       this.currentBeatIndex++;
 
-      // Handle loop or end
       if (this.currentBeatIndex >= totalBeats) {
         if (this.isLooping) {
           this.currentBeatIndex = 0;
         } else {
-          // Reached end without loop
           setTimeout(() => this.stop(), (this.nextBeatTime - this.audio.getCurrentTime()) * 1000);
           break;
         }
@@ -233,47 +302,45 @@ class Sequencer {
     }
   }
 
-  // Schedule metronome click and chord triggering for a specific beat
   scheduleBeat(beatIdx, beatTime) {
     const totalBeats = this.getTotalBeats();
     const beatInBar = beatIdx % this.beatsPerBar;
     const barIndex = Math.floor(beatIdx / this.beatsPerBar);
     const isFirstBeatOfBar = (beatInBar === 0);
 
-    // 1. Schedule Metronome Click
+    // 1. Metronome Click
     if (this.isMetronomeOn) {
       this.audio.playMetronomeClick(isFirstBeatOfBar, beatTime);
     }
 
-    // 2. Schedule Chord Triggering if a slot starts on this beat
+    // 2. Play Chord if a slot starts on this beat
     const secPerBeat = this.getSecondsPerBeat();
-    let activeSlotIdx = -1;
 
     for (let i = 0; i < this.slots.length; i++) {
       const slot = this.slots[i];
-      // Check if slot starts at this beat (or looped back)
       const slotStart = slot.startBeat % totalBeats;
-      if (slotStart === beatIdx) {
-        const chordDuration = slot.beats * secPerBeat * 0.95;
-        this.audio.playChord(slot.chord, beatTime, chordDuration);
-        activeSlotIdx = i;
+      // Allow slight floating point tolerance for fractional beat starts
+      if (Math.abs(slotStart - beatIdx) < 0.15) {
+        if (slot.chord && slot.chord.midiNotes) {
+          const chordDuration = slot.beats * secPerBeat * 0.95;
+          const vel = slot.velocity || slot.chord.velocity || 90;
+          this.audio.playChord(slot.chord, beatTime, chordDuration, vel);
+        }
         break;
       }
     }
 
-    // Find which slot is currently playing during this beat for UI highlight
+    // Find currently active slot for UI highlight
     let currentHighlightedSlot = -1;
     for (let i = 0; i < this.slots.length; i++) {
       const slot = this.slots[i];
       const slotStart = slot.startBeat % totalBeats;
-      const slotEnd = (slot.startBeat + slot.beats) % totalBeats;
       if (slotStart <= beatIdx && (beatIdx < slot.startBeat + slot.beats)) {
         currentHighlightedSlot = i;
         break;
       }
     }
 
-    // 3. UI sync update via setTimeout synchronized with Web Audio clock
     const delayMs = Math.max(0, (beatTime - this.audio.getCurrentTime()) * 1000);
     setTimeout(() => {
       if (!this.isPlaying) return;
@@ -286,16 +353,13 @@ class Sequencer {
     }, delayMs);
   }
 
-  // When recording is active and user clicks a chord, assign to current or next slot
   recordChord(chord) {
     if (!this.isRecording) return;
 
     if (this.isPlaying) {
-      // Live recording: find which slot corresponds to current beat or create one
       const totalBeats = this.getTotalBeats();
       const currentBeat = this.currentBeatIndex % totalBeats;
 
-      // Find or insert slot
       let replaced = false;
       for (let i = 0; i < this.slots.length; i++) {
         const slot = this.slots[i];
@@ -310,7 +374,6 @@ class Sequencer {
       }
       if (this.onSlotsUpdate) this.onSlotsUpdate(this.slots);
     } else {
-      // Step recording: just append chord
       this.addChord(chord);
     }
   }
@@ -329,4 +392,7 @@ class Sequencer {
   }
 }
 
+window.DURATION_FRACTIONS = DURATION_FRACTIONS;
+window.beatsToFraction = beatsToFraction;
+window.fractionToBeats = fractionToBeats;
 window.Sequencer = Sequencer;
