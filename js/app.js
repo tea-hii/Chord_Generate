@@ -161,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
 
-      // Click to preview and add/assign
       pad.addEventListener('click', async (e) => {
         await audio.init();
         playChordWithPadAnimation(chord, pad);
@@ -169,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.classList.contains('add-chord-btn') || sequencer.isRecording) {
           sequencer.recordChord(chord);
         } else {
-          // If a slot (e.g. empty slot) is selected, assign to it
+          // If an empty slot or any slot is selected, assign chord to it
           if (sequencer.selectedSlotIndex !== -1) {
             sequencer.addChord(chord);
           } else if (sequencer.slots.length === 0) {
@@ -256,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
       timelineSlots.innerHTML = `
         <div class="w-full text-center py-6 text-slate-500 flex flex-col items-center justify-center">
           <p class="text-sm">No chords in the progression track yet.</p>
-          <p class="text-xs mt-1 text-slate-600">Click "+ Add Slot" to add an empty slot, drag a chord onto it, or pick a preset!</p>
+          <p class="text-xs mt-1 text-slate-600">Click "+ Add Empty Slot" below, drag any chord onto it, or choose a preset!</p>
         </div>
       `;
     }
@@ -272,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (isEmpty) {
         // --- EMPTY CHORD SLOT ---
-        slotEl.className = `slot-item empty-slot relative flex-shrink-0 w-28 sm:w-32 p-2.5 rounded-xl border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-900/60 flex flex-col justify-between transition shadow-sm ${
+        slotEl.className = `slot-item empty-slot relative flex-shrink-0 w-32 sm:w-36 p-2.5 rounded-xl border-2 border-dashed border-slate-600 hover:border-indigo-400 bg-slate-900/70 flex flex-col justify-between transition shadow-sm ${
           isSelected ? 'ring-2 ring-indigo-500 border-indigo-500' : ''
         }`;
 
@@ -281,41 +280,42 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="font-mono bg-slate-950 px-1.5 py-0.5 rounded text-slate-400 text-[10px]">Bar ${barNum}</span>
             <div class="flex items-center space-x-1">
               <!-- Edit Pencil Button -->
-              <button type="button" class="edit-slot-btn text-slate-400 hover:text-indigo-300 p-0.5 text-xs transition cursor-pointer" title="Edit Duration (${fractionStr}) & Velocity">✏️</button>
+              <button type="button" class="edit-slot-btn px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-semibold transition cursor-pointer" title="Edit Duration (${fractionStr}) & Velocity">✏️ Edit</button>
               <!-- Delete Empty Slot Trash Bin -->
-              <button type="button" class="delete-slot-btn text-slate-500 hover:text-rose-400 p-0.5 text-xs transition cursor-pointer" title="Delete Empty Slot Entirely">🗑️</button>
+              <button type="button" class="delete-slot-btn px-1.5 py-0.5 rounded bg-rose-950/40 hover:bg-rose-900 text-rose-400 text-[11px] transition cursor-pointer" title="Delete Empty Slot Entirely">🗑️</button>
             </div>
           </div>
           
-          <div class="text-center py-2 cursor-pointer flex flex-col items-center justify-center select-none">
-            <span class="text-2xl text-slate-500 font-light">+</span>
-            <span class="text-[10px] text-slate-400 font-medium mt-0.5">Drop Chord Here</span>
+          <div class="text-center py-2.5 cursor-pointer flex flex-col items-center justify-center select-none">
+            <span class="text-2xl text-sky-400 font-light">+</span>
+            <span class="text-[11px] text-sky-300 font-bold mt-0.5">Drop Chord Here</span>
+            <span class="text-[9px] text-slate-500 mt-0.5">Drag from below or click</span>
           </div>
 
           <div class="flex items-center justify-between mt-1 pt-1.5 border-t border-slate-800 text-[11px] text-slate-400">
             <!-- Duration Badge (Click to open edit modal) -->
-            <button type="button" class="edit-duration-badge font-mono text-[10px] bg-slate-950 px-1.5 py-0.5 rounded text-sky-400 hover:bg-slate-800 transition cursor-pointer" title="Click to edit duration">
-              ${fractionStr}
+            <button type="button" class="edit-duration-badge font-mono text-[10px] bg-slate-950 px-2 py-0.5 rounded text-sky-400 border border-slate-800 hover:bg-slate-800 transition cursor-pointer" title="Click to edit duration">
+              ${fractionStr} ▾
             </button>
-            <span class="text-[9px] text-slate-500">Empty</span>
+            <span class="text-[9px] text-slate-500 font-mono">Empty Slot</span>
           </div>
         `;
       } else {
         // --- FILLED CHORD SLOT ---
-        slotEl.className = `slot-item relative flex-shrink-0 w-28 sm:w-32 p-2.5 rounded-xl border border-slate-700 bg-slate-800/90 flex flex-col justify-between transition-all shadow-md ${
+        slotEl.className = `slot-item relative flex-shrink-0 w-32 sm:w-36 p-2.5 rounded-xl border border-slate-700 bg-slate-800/90 flex flex-col justify-between transition-all shadow-md ${
           isSelected ? 'ring-2 ring-indigo-500' : ''
         }`;
 
         slotEl.innerHTML = `
           <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
             <span class="font-mono bg-slate-900 px-1.5 py-0.5 rounded text-indigo-300 text-[10px]">Bar ${barNum}</span>
-            <div class="flex items-center space-x-1.5">
+            <div class="flex items-center space-x-1">
               <!-- Edit Pencil Button -->
-              <button type="button" class="edit-slot-btn text-slate-400 hover:text-indigo-300 p-0.5 text-xs transition cursor-pointer" title="Edit Duration (${fractionStr}) & Velocity">✏️</button>
+              <button type="button" class="edit-slot-btn px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] transition cursor-pointer" title="Edit Duration (${fractionStr}) & Velocity">✏️</button>
               <!-- Trash Button: Clears chord from slot, KEEPING the slot empty in place -->
-              <button type="button" class="clear-chord-btn text-slate-400 hover:text-amber-400 p-0.5 text-xs transition cursor-pointer" title="Clear chord (keep empty slot in place)">🗑️</button>
+              <button type="button" class="clear-chord-btn px-1.5 py-0.5 rounded bg-amber-950/40 hover:bg-amber-900 text-amber-300 text-[11px] transition cursor-pointer" title="Clear chord (keep empty slot in place)">🗑️</button>
               <!-- Delete Entire Slot Button -->
-              <button type="button" class="delete-slot-btn text-slate-500 hover:text-rose-400 p-0.5 text-xs transition cursor-pointer" title="Remove slot completely">✕</button>
+              <button type="button" class="delete-slot-btn px-1.5 py-0.5 rounded bg-slate-800 hover:bg-rose-900 text-slate-400 hover:text-white text-[11px] transition cursor-pointer" title="Remove slot completely">✕</button>
             </div>
           </div>
           
@@ -326,21 +326,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div class="flex items-center justify-between mt-1 pt-1.5 border-t border-slate-700/60 text-xs">
             <!-- Duration Badge (Click to open edit modal) -->
-            <button type="button" class="edit-duration-badge font-mono text-[10px] bg-slate-950 px-1.5 py-0.5 rounded text-sky-400 hover:bg-slate-800 transition cursor-pointer" title="Click to edit duration">
-              ${fractionStr}
+            <button type="button" class="edit-duration-badge font-mono text-[10px] bg-slate-950 px-2 py-0.5 rounded text-sky-400 border border-slate-800 hover:bg-slate-800 transition cursor-pointer" title="Click to edit duration">
+              ${fractionStr} ▾
             </button>
-            <button type="button" class="play-single-slot-btn text-sky-400 hover:text-sky-300 text-xs cursor-pointer" title="Preview Chord Audio">▶</button>
+            <button type="button" class="play-single-slot-btn text-sky-400 hover:text-sky-300 text-xs cursor-pointer font-bold px-1.5 py-0.5 rounded bg-sky-950/50" title="Preview Chord Audio">▶ Play</button>
           </div>
         `;
       }
 
-      // 1. Click to select slot
+      // 1. Click on slot
       slotEl.addEventListener('click', (e) => {
         if (e.target.closest('.delete-slot-btn') || e.target.closest('.clear-chord-btn') || e.target.closest('.edit-slot-btn') || e.target.closest('.edit-duration-badge') || e.target.closest('.play-single-slot-btn')) {
           return;
         }
 
-        // Play chord audio when clicking chord zone
         if (slot.chord) {
           audio.init().then(() => {
             audio.playChord(slot.chord, null, slot.beats * sequencer.getSecondsPerBeat(), slot.velocity || 90);
@@ -357,15 +356,12 @@ document.addEventListener('DOMContentLoaded', () => {
         slotModal.open(
           index,
           slot,
-          // onSave
           (slotIdx, updates) => {
             sequencer.updateSlot(slotIdx, updates);
           },
-          // onClearChord
           (slotIdx) => {
             sequencer.clearSlotChord(slotIdx);
           },
-          // onDeleteSlot
           (slotIdx) => {
             sequencer.removeSlot(slotIdx);
           }
@@ -427,7 +423,6 @@ document.addEventListener('DOMContentLoaded', () => {
             sequencer.rebalanceSlotsToBeats();
             renderTimelineSlots(sequencer.slots);
 
-            // Audio feedback
             await audio.init();
             audio.playChord(chordData, null, slot.beats * sequencer.getSecondsPerBeat(), slot.velocity || 90);
           }
@@ -439,16 +434,16 @@ document.addEventListener('DOMContentLoaded', () => {
       timelineSlots.appendChild(slotEl);
     });
 
-    // 7. Add Slot Button (+) -> Now creates an EMPTY SLOT by default
+    // 7. Add Empty Slot Button (+)
     const addBtn = document.createElement('button');
     addBtn.type = 'button';
-    addBtn.className = 'flex-shrink-0 w-24 h-full min-h-[95px] rounded-xl border border-dashed border-slate-700 hover:border-indigo-500 bg-slate-900/40 hover:bg-slate-800/40 flex flex-col items-center justify-center text-slate-400 hover:text-indigo-400 transition cursor-pointer';
+    addBtn.className = 'flex-shrink-0 w-28 h-full min-h-[100px] rounded-xl border border-dashed border-slate-700 hover:border-indigo-400 bg-slate-900/50 hover:bg-slate-800/60 flex flex-col items-center justify-center text-slate-400 hover:text-indigo-300 transition cursor-pointer';
     addBtn.innerHTML = `
-      <span class="text-xl font-light">+</span>
-      <span class="text-[10px] mt-0.5">Add Slot</span>
+      <span class="text-xl font-light text-indigo-400">+</span>
+      <span class="text-[11px] font-bold mt-0.5 text-indigo-300">Add Slot</span>
+      <span class="text-[9px] text-slate-500">Empty Slot</span>
     `;
     addBtn.addEventListener('click', () => {
-      // Add empty slot with 4 beats (4/4) by default
       sequencer.addEmptySlot(4.0, 90);
     });
     timelineSlots.appendChild(addBtn);
@@ -684,9 +679,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Initial setup: C Major and Pop 4 Chords preset
+  // Initial setup: C Major with 1 filled chord (C) and 3 Empty Slots ready for dragging!
   updateRootButtons();
   updateKeyAndChords();
-  const defaultProgression = [0, 4, 5, 3].map(deg => ({ ...state.currentScaleChords[deg], velocity: 90 }));
-  sequencer.loadProgression(defaultProgression, 4);
+
+  const tonicChord = state.currentScaleChords[0];
+  sequencer.slots = [
+    {
+      id: 'slot_init_1',
+      chord: tonicChord ? { ...tonicChord, velocity: 90 } : null,
+      beats: 4.0,
+      velocity: 90
+    },
+    {
+      id: 'slot_init_2',
+      chord: null, // Empty Slot 2
+      beats: 4.0,
+      velocity: 90
+    },
+    {
+      id: 'slot_init_3',
+      chord: null, // Empty Slot 3
+      beats: 4.0,
+      velocity: 90
+    },
+    {
+      id: 'slot_init_4',
+      chord: null, // Empty Slot 4
+      beats: 4.0,
+      velocity: 90
+    }
+  ];
+  sequencer.rebalanceSlotsToBeats();
+  renderTimelineSlots(sequencer.slots);
 });
