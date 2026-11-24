@@ -1,4 +1,4 @@
-// Lightweight client-side Standard MIDI File (.mid) Generator
+// Lightweight client-side Standard MIDI File (.mid) Generator with Velocity Support
 // Allows instant Drag & Drop into DAWs (FL Studio, Ableton, Logic, GarageBand, etc.)
 
 class MidiWriter {
@@ -45,17 +45,20 @@ class MidiWriter {
     const nameBytes = Array.from(trackName).map(c => c.charCodeAt(0));
     trackEvents.push(0x00, 0xFF, 0x03, nameBytes.length, ...nameBytes);
 
-    // Write chord events
+    // Write chord events with dynamic Velocity
     for (const slot of slots) {
       if (!slot.chord || !slot.chord.midiNotes) continue;
 
       const durationTicks = Math.round(slot.beats * ticksPerBeat);
       const notes = slot.chord.midiNotes;
+      const baseVel = Math.min(127, Math.max(20, slot.chord.velocity || 90));
 
       // Note Ons (all at delta time 0)
       notes.forEach((midi, idx) => {
-        trackEvents.push(idx === 0 ? 0x00 : 0x00);
-        trackEvents.push(0x90, midi, 85); // Note on, channel 0, vel 85
+        trackEvents.push(0x00);
+        // Bass note slightly more accented
+        const noteVel = idx === 0 ? Math.min(127, Math.round(baseVel * 1.05)) : baseVel;
+        trackEvents.push(0x90, midi, noteVel); // Note on, channel 0
       });
 
       // Note Offs after durationTicks

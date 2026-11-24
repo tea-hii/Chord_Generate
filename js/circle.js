@@ -1,6 +1,6 @@
-// Interactive SVG Circle of Fifths Component
+// Interactive SVG Circle of Fifths Component with Velocity Sensitivity
 // Renders the 12-wedge wheel with Major outer ring and Minor inner ring
-// Highlights diatonic relationships (Tonic, Subdominant, Dominant, Relative)
+// Computes dynamic velocity based on touch/click position (outer = forte, inner = piano) or pointer pressure
 
 class CircleOfFifths {
   constructor(containerId, onKeySelect) {
@@ -23,7 +23,6 @@ class CircleOfFifths {
     this.render();
   }
 
-  // Calculate sector polar coordinates to SVG path arc
   describeArc(x, y, innerRadius, outerRadius, startAngle, endAngle) {
     const startOuter = this.polarToCartesian(x, y, outerRadius, endAngle);
     const endOuter = this.polarToCartesian(x, y, outerRadius, startAngle);
@@ -49,6 +48,40 @@ class CircleOfFifths {
     };
   }
 
+  // Calculate velocity (30..127) from click/touch coordinates relative to SVG center
+  computeVelocity(event, mode) {
+    // If device supports hardware pressure (stylus / touch)
+    if (event.pressure && event.pressure > 0.05 && event.pressure < 1.0) {
+      return Math.round(35 + event.pressure * 92);
+    }
+
+    const svg = this.container.querySelector('svg');
+    if (!svg) return 90;
+
+    const rect = svg.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const clickY = event.clientY - rect.top;
+
+    // Scale to viewBox coordinates
+    const scale = this.size / rect.width;
+    const svgX = clickX * scale;
+    const svgY = clickY * scale;
+
+    const dx = svgX - this.center;
+    const dy = svgY - this.center;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    let innerR = (mode === 'major') ? this.midRadius : this.innerRadius;
+    let outerR = (mode === 'major') ? this.outerRadius : this.midRadius;
+
+    // Calculate normalized radial ratio (0.0 at inner edge, 1.0 at outer edge)
+    const ratio = Math.max(0, Math.min(1, (distance - innerR) / (outerR - innerR)));
+
+    // Map: inner edge = piano (45), outer edge = fortissimo (127)
+    const velocity = Math.round(45 + ratio * 82);
+    return Math.max(35, Math.min(127, velocity));
+  }
+
   render() {
     if (!this.container) return;
 
@@ -58,7 +91,7 @@ class CircleOfFifths {
     const activeIndex = currentIdx !== -1 ? currentIdx : 0;
 
     let svgHtml = `
-      <svg viewBox="0 0 ${this.size} ${this.size}" class="circle-svg select-none w-full max-w-[380px] h-auto drop-shadow-xl">
+      <svg viewBox="0 0 ${this.size} ${this.size}" class="circle-svg select-none w-full max-w-[380px] h-auto drop-shadow-2xl">
         <defs>
           <filter id="glow-gold" x="-20%" y="-20%" width="140%" height="140%">
             <feGaussianBlur stdDeviation="3" result="blur" />
@@ -79,7 +112,6 @@ class CircleOfFifths {
       const startAngle = angleCenter - angleStep / 2;
       const endAngle = angleCenter + angleStep / 2;
 
-      // Determine relation to selected key
       const diff = (index - activeIndex + 12) % 12;
       let outerColorClass = 'fill-slate-800/80 stroke-slate-700/60 hover:fill-slate-700/90';
       let innerColorClass = 'fill-slate-900/90 stroke-slate-700/60 hover:fill-slate-800';
@@ -88,70 +120,51 @@ class CircleOfFifths {
 
       if (this.selectedMode === 'major') {
         if (diff === 0) {
-          // Tonic I
-          outerColorClass = 'fill-indigo-600 stroke-indigo-400 fill-opacity-90';
+          outerColorClass = 'fill-indigo-600 stroke-indigo-400 fill-opacity-95';
           outerTextClass = 'fill-white font-bold text-base filter drop-shadow';
-          // Relative Minor vi
           innerColorClass = 'fill-indigo-900 stroke-indigo-500 fill-opacity-80';
           innerTextClass = 'fill-indigo-200 font-bold';
         } else if (diff === 1) {
-          // Dominant V
-          outerColorClass = 'fill-amber-600/80 stroke-amber-400/80';
+          outerColorClass = 'fill-amber-600/85 stroke-amber-400/80';
           outerTextClass = 'fill-white font-bold';
-          // Relative iii
           innerColorClass = 'fill-amber-900/60 stroke-amber-600/60';
         } else if (diff === 11) {
-          // Subdominant IV
-          outerColorClass = 'fill-sky-600/80 stroke-sky-400/80';
+          outerColorClass = 'fill-sky-600/85 stroke-sky-400/80';
           outerTextClass = 'fill-white font-bold';
-          // Relative ii
           innerColorClass = 'fill-sky-900/60 stroke-sky-600/60';
         } else if (diff === 2) {
-          // vii° (Relative)
           innerColorClass = 'fill-rose-950/70 stroke-rose-800/60';
         }
       } else {
-        // Minor Mode
         if (diff === 0) {
-          // Minor Tonic i
-          innerColorClass = 'fill-indigo-600 stroke-indigo-400 fill-opacity-90';
+          innerColorClass = 'fill-indigo-600 stroke-indigo-400 fill-opacity-95';
           innerTextClass = 'fill-white font-bold text-sm';
-          // Relative Major III
           outerColorClass = 'fill-indigo-950 stroke-indigo-500/80';
           outerTextClass = 'fill-indigo-200 font-bold';
         } else if (diff === 11) {
-          // Subdominant iv
-          innerColorClass = 'fill-sky-600/80 stroke-sky-400/80';
+          innerColorClass = 'fill-sky-600/85 stroke-sky-400/80';
           innerTextClass = 'fill-white font-bold';
         } else if (diff === 1) {
-          // Dominant v
-          innerColorClass = 'fill-amber-600/80 stroke-amber-400/80';
+          innerColorClass = 'fill-amber-600/85 stroke-amber-400/80';
           innerTextClass = 'fill-white font-bold';
         }
       }
 
-      // Outer Ring Wedge (Major Key)
       const outerPath = this.describeArc(this.center, this.center, this.midRadius, this.outerRadius, startAngle, endAngle);
-      // Inner Ring Wedge (Minor Key)
       const innerPath = this.describeArc(this.center, this.center, this.innerRadius, this.midRadius, startAngle, endAngle);
 
-      // Text Positions
       const outerTextPos = this.polarToCartesian(this.center, this.center, (this.midRadius + this.outerRadius) / 2, angleCenter);
       const innerTextPos = this.polarToCartesian(this.center, this.center, (this.innerRadius + this.midRadius) / 2, angleCenter);
-
-      // Accidentals indicator dot
-      const accTextPos = this.polarToCartesian(this.center, this.center, this.outerRadius - 8, angleCenter);
 
       svgHtml += `
         <!-- Wedge ${item.root} -->
         <g class="cursor-pointer transition-all duration-150">
-          <!-- Outer Major Sector -->
           <path d="${outerPath}" 
                 class="${outerColorClass} transition-colors cursor-pointer"
                 stroke-width="1.2"
                 data-key="${item.root}" 
                 data-mode="major"
-                title="${item.root} Trưởng (${item.label})">
+                title="${item.root} Trưởng (Mép ngoài: Mạnh ff / Mép trong: Nhẹ p)">
           </path>
           <text x="${outerTextPos.x}" y="${outerTextPos.y + 4}" 
                 text-anchor="middle" 
@@ -159,13 +172,12 @@ class CircleOfFifths {
             ${item.root}
           </text>
           
-          <!-- Inner Minor Sector -->
           <path d="${innerPath}" 
                 class="${innerColorClass} transition-colors cursor-pointer"
                 stroke-width="1.2"
                 data-key="${item.minor.replace('m', '')}" 
                 data-mode="minor"
-                title="${item.minor} Thứ">
+                title="${item.minor} Thứ (Mép ngoài: Mạnh ff / Mép trong: Nhẹ p)">
           </path>
           <text x="${innerTextPos.x}" y="${innerTextPos.y + 3}" 
                 text-anchor="middle" 
@@ -196,13 +208,14 @@ class CircleOfFifths {
 
     this.container.innerHTML = svgHtml;
 
-    // Attach click listeners to wedges
+    // Attach click and pointerdown listeners with velocity detection
     this.container.querySelectorAll('path[data-key]').forEach(path => {
-      path.addEventListener('click', (e) => {
+      path.addEventListener('pointerdown', (e) => {
         const key = e.target.getAttribute('data-key');
         const mode = e.target.getAttribute('data-mode');
+        const velocity = this.computeVelocity(e, mode);
         if (this.onKeySelect) {
-          this.onKeySelect(key, mode);
+          this.onKeySelect(key, mode, velocity);
         }
       });
     });

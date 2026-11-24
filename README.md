@@ -1,64 +1,65 @@
-# ChordFlow 🎵 - Web App Vòng Hòa Thanh, Vòng Tròn Bậc 5 & Cảm Hứng Sáng Tác
+# ChordFlow 🎵 - Web App Vòng Hòa Thanh, Vòng Tròn Bậc 5, Lưới MIDI & General MIDI Studio
 
-Một ứng dụng web client-side hiện đại giúp các nhạc sĩ, nhà sản xuất âm nhạc (producer) và người yêu âm nhạc dễ dàng tạo vòng hòa thanh (chord progression), khám phá vòng tròn bậc 5 (Circle of Fifths), lặp lại các ô nhịp hòa thanh và nhẩm giai điệu với Mêtrônôm & Tap Tempo.
+Một ứng dụng web client-side hiện đại giúp các nhạc sĩ, nhà sản xuất âm nhạc (producer) và người yêu âm nhạc dễ dàng tạo vòng hòa thanh (chord progression), khám phá vòng tròn bậc 5 (Circle of Fifths), xem và vẽ nốt trên **Lưới MIDI Piano Roll**, trải nghiệm **Cảm ứng lực Velocity** và bộ âm sắc **General MIDI (GM)** chuẩn mực.
 
-Ứng dụng chạy hoàn toàn trên trình duyệt bằng **HTML5 + Web Audio API**, không cần cài đặt backend, sẵn sàng triển khai lên **GitHub Pages** chỉ với vài cú nhấp chuột.
-
-![Giao diện ChordFlow](https://raw.githubusercontent.com/username/repository/main/preview.png)
+Ứng dụng chạy hoàn toàn trên trình duyệt bằng **HTML5 + Web Audio API**, không cần cài đặt backend, sẵn sàng triển khai lên **GitHub Pages** chỉ với 1 cú nhấp chuột.
 
 ---
 
-## ✨ Tính Năng Nổi Bật
+## ✨ Các Tính Năng Đột Phá Mới Được Bổ Sung
 
-### 1. ⭕ Vòng tròn bậc 5 tương tác (Circle of Fifths)
-- Vòng ngoài chứa các giọng Trưởng (Major), vòng trong chứa các giọng Thứ (Minor).
-- Khi chọn 1 giọng (ví dụ C Trưởng hay A Thứ), vòng tròn sẽ tự động làm nổi bật mối quan hệ hòa âm: **Chủ âm (Tonic - I)**, **Hạ át (Subdominant - IV)**, **Át âm (Dominant - V)**, và các giọng tương đương.
-- Hỗ trợ nhiều âm giai (Scale Modes): Major (Ionian), Natural Minor (Aeolian), Harmonic Minor (Thứ hòa âm), Dorian, Mixolydian.
-- Tùy chọn chuyển đổi nhanh giữa hợp âm 3 nốt (Triads) và **Hợp âm 7 (7th Chords: maj7, m7, 7, m7b5)**.
+### 1. 🎹 Cửa Sổ Lưới MIDI & Piano Roll (Vẽ & Soi Nốt Hòa Thanh)
+- Bấm nút **"🎹 Mở Lưới MIDI (Piano Roll)"** hoặc bấm biểu tượng MIDI trên từng ô hợp âm để mở cửa sổ Piano Roll chuyên nghiệp.
+- **Lưới Grid chuẩn DAW**: Trục dọc là phím đàn Piano (từ C2 đến C6), trục ngang là các Khuông nhạc (Bars), Phách (Beats) và vạch chia nửa phách.
+- **Trực quan hóa vòng lặp (Loop Visualizer)**: Hiển thị các khối nốt nhạc của vòng hòa thanh đang lặp lại.
+- **Con trỏ Playhead chạy thời gian thực**: Đường quét laser đỏ di chuyển mượt mà theo nhịp của Web Audio API, các nốt đang vang lên sẽ sáng bừng theo nhịp điệu.
+- **Tính năng vẽ MIDI (MIDI Editor)**:
+  - Bấm chuột vào ô trống trên lưới để **vẽ/thêm nốt mới** ngay lập tức.
+  - Bấm vào nốt đã có để **xóa nốt**.
+  - Nhấp vào phím đàn bên trái để nghe thử cao độ của từng nốt.
 
-### 2. 🎹 Bàn phím hợp âm các bậc (I - VII)
-- 7 ô hợp âm tương ứng với 7 bậc trong âm giai.
-- Hiển thị tên hợp âm (ví dụ: `C`, `Dm`, `Em`, `F`, `G`, `Am`, `Bdim` hoặc `Cmaj7`, `Dm7`...).
-- Hiển thị các nốt cấu thành hợp âm và chức năng hòa âm (Chủ âm, Tiền át, Át âm...).
-- **Âm thanh chân thực**: Tích hợp bộ tổng hợp âm thanh Polyphonic đa âm sắc (Grand Piano, Rhodes Electric Piano, Lush Ambient Pad, Acoustic Guitar Pluck) với hiệu ứng Reverb phòng thu.
-- Hỗ trợ kiểu gõ: Rải ngón tự nhiên (Strumming) hoặc đánh nốt đồng thời (Block Chord).
-- **Hợp âm vay mượn (Borrowed Chords)**: Tự động gợi ý các hợp âm ngoài âm giai kinh điển (như bậc `iv` thứ trong giọng trưởng, `bVII`, `bVI`, `V/vi`) giúp tạo điểm nhấn xúc động, độc đáo cho bài hát.
+### 2. ⚡ Cảm Ứng Lực Bấm Velocity (Độ Mạnh Nhẹ Động)
+- **Trên Vòng tròn bậc 5 (Circle of Fifths)**:
+  - Bấm ở **mép ngoài** của ô cung = **Velocity mạnh (ff / 110 - 127)**: Âm lượng to, bộ lọc âm sáng rực rỡ và đanh thép.
+  - Bấm ở **mép trong** của ô cung = **Velocity nhẹ (p / 40 - 65)**: Âm lượng nhỏ nhẹ, ấm áp và êm dịu.
+- **Trên Bàn phím hợp âm bậc I - VII**:
+  - Bấm nửa trên của phím = Lực mạnh (Forte).
+  - Bấm nửa dưới của phím = Lực nhẹ (Piano).
+  - Tự động nhận diện độ nhạy lực bấm cứng trên màn hình cảm ứng / bút stylus (Pointer pressure).
+- **HUD hiển thị lực thời gian thực**: Góc trên màn hình sẽ hiển thị ngay chỉ số Velocity vừa bấm (`Vel: 115 (ff)` hoặc `Vel: 55 (p)`).
+- Chỉ số Velocity được lưu lại theo từng ô hợp âm và xuất ra chuẩn xác trong file `.mid`!
 
-### 3. 🎼 Vòng hòa thanh (Sequencer & Looper)
-- Tùy chỉnh số khuông nhạc (2 Khuông = 2 Bars, 4 Khuông, 8 Khuông) và số nhịp (4/4 hoặc 3/4).
-- Tùy chỉnh độ dài từng hợp âm (1 phách, 2 phách, 4 phách).
-- **Chế độ Lặp (Loop)**: Vòng lặp chạy liên tục, mượt mà với bộ đếm thời gian Web Audio không bị giật lag hay lệch nhịp.
-- Con trỏ phát sáng thời gian thực di chuyển qua từng ô hợp âm đang vang lên.
-- **Chế độ Ghi âm (Record)**: Bấm nút Ghi và bấm các phím hợp âm theo nhịp để tự động tạo vòng hòa thanh theo cảm xúc.
-
-### 4. ⏱️ Mêtrônôm & Bấm nhịp (Tap Tempo)
-- **Mêtrônôm**: Tiếng gõ gõ (click/woodblock) đanh rõ, nhấn mạnh (accent) vào phách 1 đầu mỗi ô nhịp. Có nút chỉnh âm lượng riêng.
-- **Hàng đèn LED nhịp**: 4 đèn nháy theo phách 1, 2, 3, 4 giúp bạn dễ dàng bắt nhịp để nhẩm giai điệu (hum melody/topline).
-- **Nút "BẤM NHỊP (TAP TEMPO)"**: Nhấp ngón tay theo giai điệu bạn đang nhẩm trong đầu, ứng dụng sẽ tự động tính toán chính xác tốc độ BPM tương ứng!
-- Thanh trượt và nút bấm tinh chỉnh BPM từ 30 đến 260 BPM.
-
-### 5. 💡 Gợi ý các vòng hòa thanh bất hủ
-Tích hợp sẵn danh sách các vòng hòa thanh nổi tiếng để bạn lấy cảm hứng ngay lập tức:
-- **Pop Wonder (I - V - vi - IV)**: Vòng 4 hợp âm kinh điển của hàng ngàn bài hit thế giới và Việt Nam.
-- **Emotional / Sad Mood (vi - IV - I - V)**: Bắt đầu bằng bậc vi gợi cảm giác sâu lắng, hoài niệm.
-- **Royal Road / Odo Shinkou (IV - V - iii - vi)**: Vòng hoàng kim cảm xúc mãnh liệt trong Anime, J-Pop & V-Pop.
-- **50s Doo-Wop (I - vi - IV - V)**: Vòng kinh điển thập niên 50-60 (Stand By Me, Dấu mưa).
-- **Jazz Cadence (ii7 - V7 - Imaj7 - VI7)**: Chuyển bậc chuẩn mực của nhạc Jazz & Neo-Soul.
-- **Andalusian Cadence (i - VII - VI - V)**: Phong cách Flamenco, kịch tính, lôi cuốn.
-- **Lofi Chill / R&B (IVmaj7 - iii7 - ii7 - Imaj7)**: Hạ dần nhẹ nhàng, êm dịu.
-
-### 6. 💾 Xuất file MIDI (.mid) & Sao chép văn bản
-- Xuất file `.mid` chuẩn với 1 cú click để bạn kéo thả thẳng vào DAW (FL Studio, Ableton Live, Logic Pro, GarageBand, Cubase, Studio One...).
-- Nút sao chép văn bản vòng hòa thanh (ví dụ: `C - G - Am - F`) để lưu vào sổ tay lời bài hát.
+### 3. 🎼 Bộ Âm Sắc Chuẩn General MIDI (GM Instruments)
+Tích hợp sẵn 16 nhạc cụ cơ bản tiêu chuẩn của General MIDI:
+- **Piano**: 001. Acoustic Grand Piano, 002. Bright Acoustic Piano
+- **Electric Piano**: 005. Electric Piano 1 (Rhodes), 006. Electric Piano 2 (DX7 FM Sparkle)
+- **Chromatic**: 012. Vibraphone
+- **Organ**: 017. Drawbar Organ (Hammond B3), 020. Church Pipe Organ
+- **Guitar**: 025. Acoustic Guitar (Nylon), 026. Acoustic Guitar (Steel), 028. Electric Guitar (Clean)
+- **Bass**: 033. Acoustic Upright Bass
+- **Strings & Ensemble**: 041. Solo Strings / Violin, 049. String Ensemble 1
+- **Brass & Pipe**: 057. Trumpet / Brass Section, 074. Flute / Woodwind
+- **Synth Pad**: 089. Warm Synth Pad
 
 ---
 
-## ⌨️ Phím Tắt Tiện Lợi
+## ⭕ Các Tính Năng Cốt Lõi
+
+1. **Vòng tròn bậc 5 tương tác (Circle of Fifths)**: Chọn giọng Trưởng/Thứ, tự động tô màu Chủ âm (Tonic - I), Hạ át (Subdominant - IV), Át âm (Dominant - V). Chuyển đổi linh hoạt giữa hợp âm 3 nốt (Triads) và hợp âm 7 (7ths: maj7, m7, 7, m7b5).
+2. **Hợp âm vay mượn (Borrowed Chords)**: Tự động gợi ý các bậc ngoài âm giai như bậc `iv` thứ, `bVII`, `bVI`, `V/vi` để tạo điểm nhấn bất hủ cho ca khúc.
+3. **Bộ Looper & Sequencer**: Lặp lại trơn tru 2 khuông, 4 khuông hoặc 8 khuông; nhịp 4/4 hoặc 3/4.
+4. **Mêtrônôm & Bấm nhịp (Tap Tempo)**: Gõ nhịp phách 1 nhấn mạnh rõ ràng, hàng 4 đèn LED nháy nhịp, nút **TAP TEMPO** để nhấp ngón tay và tự bắt nhịp BPM theo giai điệu bạn đang nhẩm trong đầu.
+5. **Thư viện vòng hòa thanh kinh điển**: Pop 4 Chords, Emotional Ballad, J-Pop Royal Road, 50s Doo-Wop, Jazz 2-5-1, Andalusian Flamenco, Lofi Chill.
+6. **Xuất MIDI (.mid)**: Tải file MIDI chuẩn kéo thả thẳng vào FL Studio, Ableton Live, Logic Pro, GarageBand...
+
+---
+
+## ⌨️ Phím Tắt Nhanh
 
 | Phím | Chức năng |
 | :--- | :--- |
 | **Space** | Bật / Tạm dừng phát vòng hòa thanh |
-| **Phím 1 - 7** | Đánh nhanh hợp âm các bậc I đến VII |
+| **Phím 1 - 7** | Đánh nhanh hợp âm các bậc 1 đến 7 |
 | **T** | Bấm nhịp (Tap Tempo) |
 | **L** | Bật / Tắt chế độ lặp (Loop) |
 | **R** | Bật / Tắt chế độ ghi âm hợp âm (Record) |
@@ -66,52 +67,18 @@ Tích hợp sẵn danh sách các vòng hòa thanh nổi tiếng để bạn l�
 
 ---
 
-## 🚀 Hướng Dẫn Đưa Lên GitHub Pages (Miễn Phí 100%)
-
-Dự án này là web tĩnh (Static Web App), bạn có thể đưa lên GitHub Pages trong vòng 1 phút theo các bước sau:
-
-### Bước 1: Khởi tạo Git và đẩy mã nguồn lên GitHub
-Mở terminal trong thư mục dự án và chạy:
+## 🚀 Hướng Dẫn Đưa Lên GitHub Pages (1 Cú Click)
 
 ```bash
 git init
 git add .
-git commit -m "Initial commit: ChordFlow web app"
+git commit -m "feat: ChordFlow with MIDI Piano Roll, Velocity & General MIDI"
 git branch -M main
-git remote add origin https://github.com/TÊN_TÀI_KHOẢN_CỦA_BẠN/TÊN_REPO.git
+git remote add origin https://github.com/<tai-khoan-cua-ban>/<ten-repo>.git
 git push -u origin main
 ```
 
-### Bước 2: Bật GitHub Pages
-1. Truy cập vào kho chứa (Repository) của bạn trên GitHub.
-2. Nhấp vào tab **Settings** (Cài đặt) ở thanh trên cùng.
-3. Ở menu bên trái, chọn mục **Pages**.
-4. Tại phần **Build and deployment** -> **Source**: chọn **Deploy from a branch**.
-5. Dưới mục **Branch**: chọn nhánh `main` và thư mục `/ (root)`, sau đó bấm **Save**.
-6. Chờ khoảng 30 - 60 giây, GitHub sẽ cung cấp cho bạn một đường link web dạng:
-   `https://<ten-tai-khoan>.github.io/<ten-repo>/`
-
-Bây giờ bạn có thể mở web app trên cả máy tính và điện thoại để sáng tác nhạc mọi lúc mọi nơi!
-
----
-
-## 🛠️ Cấu Trúc Dự Án
-
-```
-Chord_generate/
-├── index.html        # Giao diện chính responsive
-├── css/
-│   └── style.css     # Thiết kế giao diện phòng thu âm nhạc (Studio dark mode)
-├── js/
-│   ├── theory.js     # Engine nhạc lý (nốt, âm giai, hợp âm, voicing)
-│   ├── audio.js      # Web Audio API (polyphony, piano synth, reverb, metronome)
-│   ├── circle.js     # Vòng tròn bậc 5 SVG tương tác
-│   ├── sequencer.js  # Bộ lập trình vòng hòa thanh, looper & tap tempo
-│   ├── midi.js       # Bộ tạo và xuất file chuẩn MIDI (.mid)
-│   └── app.js        # Điều phối giao diện và sự kiện
-├── .gitignore
-└── README.md         # Hướng dẫn chi tiết
-```
+Sau đó vào repository trên GitHub: **Settings** -> **Pages** -> chọn nhánh `main` và thư mục `/ (root)` rồi nhấn **Save** là xong!
 
 ---
 

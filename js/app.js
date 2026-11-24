@@ -1,5 +1,5 @@
 // Main Application Orchestrator for ChordFlow
-// Binds Theory, AudioEngine, Sequencer, CircleOfFifths, and DOM UI
+// Binds Theory, AudioEngine (General MIDI), Sequencer, CircleOfFifths, PianoRollModal, and DOM UI
 
 document.addEventListener('DOMContentLoaded', () => {
   // Current app state
@@ -9,20 +9,35 @@ document.addEventListener('DOMContentLoaded', () => {
     use7ths: false,
     currentScaleChords: [],
     borrowedChords: [],
-    selectedSlotIdx: -1
+    lastVelocity: 90
   };
 
   // Instantiate core modules
   const audio = window.audioEngine;
   const sequencer = new Sequencer(audio);
 
-  // Initialize Circle of Fifths
-  const circle = new CircleOfFifths('circle-container', (newKey, newMode) => {
+  // Initialize Piano Roll Modal
+  const pianoRoll = new PianoRollModal(audio, sequencer);
+
+  // Initialize Circle of Fifths with dynamic Velocity sensitivity
+  const circle = new CircleOfFifths('circle-container', (newKey, newMode, velocity) => {
     state.selectedRoot = newKey;
     state.selectedMode = newMode;
+    state.lastVelocity = velocity;
+
+    showVelocityHud(velocity);
+
     // Sync mode dropdown
     document.getElementById('scale-mode-select').value = newMode;
     updateKeyAndChords();
+
+    // Play tonic chord with dynamic velocity
+    const tonicChord = state.currentScaleChords[0];
+    if (tonicChord) {
+      audio.init().then(() => {
+        audio.playChord(tonicChord, null, 2.0, velocity);
+      });
+    }
   });
 
   // DOM Elements
@@ -48,20 +63,77 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportMidiBtn = document.getElementById('export-midi-btn');
   const copyProgressionBtn = document.getElementById('copy-progression-btn');
   const clearProgressionBtn = document.getElementById('clear-progression-btn');
+  const openPianoRollBtn = document.getElementById('open-pianoroll-btn');
   const instrumentSelect = document.getElementById('instrument-select');
   const strumSelect = document.getElementById('strum-select');
   const masterVolumeSlider = document.getElementById('master-volume');
   const metronomeVolumeSlider = document.getElementById('metronome-volume');
   const currentKeyTitle = document.getElementById('current-key-title');
   const beatLeds = document.querySelectorAll('.beat-led');
+  const velocityHud = document.getElementById('velocity-hud');
 
-  // Load Presets in Dropdown
+  // Populate General MIDI Instruments Dropdown
+  instrumentSelect.innerHTML = '';
+  const categories = {};
+  GM_INSTRUMENTS.forEach(inst => {
+    if (!categories[inst.category]) categories[inst.category] = [];
+    categories[inst.category].push(inst);
+  });
+
+  for (const [catName, instList] of Object.entries(categories)) {
+    const optGroup = document.createElement('optgroup');
+    optGroup.label = catName;
+    instList.forEach(inst => {
+      const opt = document.createElement('option');
+      opt.value = inst.id;
+      opt.textContent = `${inst.icon} ${inst.name}`;
+      optGroup.appendChild(opt);
+    });
+    instrumentSelect.appendChild(optGroup);
+  }
+
+  // Populate Progression Presets
   PROGRESSION_TEMPLATES.forEach((tpl, idx) => {
     const opt = document.createElement('option');
     opt.value = idx;
     opt.textContent = `${tpl.genre}: ${tpl.name}`;
     presetsSelect.appendChild(opt);
   });
+
+  // Display Velocity HUD Toast
+  function showVelocityHud(velocity) {
+    if (!velocityHud) return;
+    let label = 'mf';
+    let colorClass = 'text-sky-400';
+    if (velocity < 60) { label = 'p (Piano - Nhẹ)'; colorClass = 'text-teal-400'; }
+    else if (velocity < 85) { label = 'mp / mf (Vừa)'; colorClass = 'text-sky-400'; }
+    else if (velocity < 110) { label = 'f (Forte - Mạnh)'; colorClass = 'text-amber-400'; }
+    else { label = 'ff (Fortissimo - Rất mạnh)'; colorClass = 'text-rose-400'; }
+
+    velocityHud.innerHTML = `
+      <span class="text-slate-400 text-xs">Lực bấm:</span>
+      <span class="font-mono font-bold ${colorClass}">Vel ${velocity}</span>
+      <span class="text-[11px] text-slate-300">(${label})</span>
+    `;
+    velocityHud.classList.remove('opacity-0');
+    clearTimeout(velocityHud._timeout);
+    velocityHud._timeout = setTimeout(() => {
+      velocityHud.classList.add('opacity-0');
+    }, 1800);
+  }
+
+  // Calculate velocity from pad click/touch position
+  function computePadVelocity(e, padElement) {
+    if (e.pressure && e.pressure > 0.05 && e.pressure < 1.0) {
+      return Math.round(35 + e.pressure * 92);
+    }
+    const rect = padElement.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+    // Clicking near top of pad = Forte (115-127); clicking near bottom = Piano (50-70)
+    const ratio = Math.max(0, Math.min(1, 1 - (offsetY / rect.height)));
+    const velocity = Math.round(50 + ratio * 77);
+    return Math.max(40, Math.min(127, velocity));
+  }
 
   // 1. Update Key and Diatonic Chords
   function updateKeyAndChords() {
@@ -90,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
       pad.className = 'chord-pad relative flex flex-col items-center justify-between p-3.5 sm:p-4 rounded-xl border border-slate-700/80 bg-slate-800/80 hover:bg-slate-700/80 text-left cursor-pointer shadow-md';
       pad.dataset.index = idx;
 
-      // Color coding for function (Tonic = Indigo, Subdominant = Sky, Dominant = Amber, Diminished = Rose)
       let badgeColor = 'bg-slate-700 text-slate-300';
       if (idx === 0) badgeColor = 'bg-indigo-600/40 text-indigo-300 border border-indigo-500/50';
       else if (idx === 3 || idx === 1) badgeColor = 'bg-sky-600/40 text-sky-300 border border-sky-500/50';
@@ -100,31 +171,35 @@ document.addEventListener('DOMContentLoaded', () => {
       const notesText = chord.midiNotes.slice(1).map(m => NOTE_NAMES[m % 12]).join(' - ');
 
       pad.innerHTML = `
-        <div class="w-full flex items-center justify-between mb-1.5">
+        <div class="w-full flex items-center justify-between mb-1.5 pointer-events-none">
           <span class="text-xs px-2 py-0.5 rounded font-mono font-bold ${badgeColor}">${chord.degree}</span>
           <span class="text-[10px] text-slate-400 font-mono hidden sm:inline">[Phím ${idx + 1}]</span>
         </div>
-        <div class="text-xl sm:text-2xl font-black text-white tracking-wide my-1">${chord.fullName}</div>
-        <div class="text-[11px] text-slate-400 truncate w-full text-center mt-0.5">${notesText}</div>
-        <div class="text-[10px] text-slate-500 truncate w-full text-center mt-0.5">${chord.functionName.split(' (')[0]}</div>
+        <div class="text-xl sm:text-2xl font-black text-white tracking-wide my-1 pointer-events-none">${chord.fullName}</div>
+        <div class="text-[11px] text-slate-400 truncate w-full text-center mt-0.5 pointer-events-none">${notesText}</div>
+        <div class="text-[10px] text-slate-500 truncate w-full text-center mt-0.5 pointer-events-none">${chord.functionName.split(' (')[0]}</div>
         <div class="mt-2.5 w-full pt-1.5 border-t border-slate-700/50 flex justify-between items-center text-[11px]">
-          <span class="text-indigo-400 font-medium hover:text-indigo-300">Nghe thử</span>
-          <span class="text-xs text-sky-400 font-semibold px-1.5 py-0.5 rounded bg-sky-950/60 hover:bg-sky-900">+ Thêm</span>
+          <span class="text-indigo-400 font-medium">Nghe thử</span>
+          <span class="text-xs text-sky-400 font-semibold px-1.5 py-0.5 rounded bg-sky-950/60 hover:bg-sky-900 add-chord-btn">+ Thêm</span>
         </div>
       `;
 
-      // Click to play and add to progression
-      pad.addEventListener('click', async (e) => {
+      // Pointer event for velocity detection
+      pad.addEventListener('pointerdown', async (e) => {
         await audio.init();
-        playChordWithPadAnimation(chord, pad);
+        const velocity = computePadVelocity(e, pad);
+        state.lastVelocity = velocity;
+        chord.velocity = velocity;
+        showVelocityHud(velocity);
+
+        playChordWithPadAnimation(chord, pad, velocity);
 
         // If clicking "+ Thêm" or in record mode
-        if (e.target.closest('span:last-child') || sequencer.isRecording) {
-          sequencer.recordChord(chord);
+        if (e.target.classList.contains('add-chord-btn') || sequencer.isRecording) {
+          sequencer.recordChord({ ...chord, velocity });
         } else {
-          // If no slots exist yet, auto add first chord
           if (sequencer.slots.length === 0) {
-            sequencer.addChord(chord);
+            sequencer.addChord({ ...chord, velocity });
           }
         }
       });
@@ -147,27 +222,30 @@ document.addEventListener('DOMContentLoaded', () => {
       pad.className = 'chord-pad relative flex flex-col items-center justify-between p-3 rounded-lg border border-purple-800/40 bg-purple-950/30 hover:bg-purple-900/40 text-left cursor-pointer';
       
       pad.innerHTML = `
-        <div class="w-full flex items-center justify-between mb-1">
+        <div class="w-full flex items-center justify-between mb-1 pointer-events-none">
           <span class="text-xs px-1.5 py-0.5 rounded font-mono font-bold bg-purple-900/60 text-purple-200">${chord.degree}</span>
           <span class="text-[10px] text-purple-300">Vay mượn</span>
         </div>
-        <div class="text-lg font-bold text-white my-0.5">${chord.fullName}</div>
-        <div class="text-[10px] text-purple-300/80 truncate w-full text-center">${chord.functionName}</div>
+        <div class="text-lg font-bold text-white my-0.5 pointer-events-none">${chord.fullName}</div>
+        <div class="text-[10px] text-purple-300/80 truncate w-full text-center pointer-events-none">${chord.functionName}</div>
       `;
 
-      pad.addEventListener('click', async () => {
+      pad.addEventListener('pointerdown', async (e) => {
         await audio.init();
-        playChordWithPadAnimation(chord, pad);
-        sequencer.recordChord(chord);
+        const velocity = computePadVelocity(e, pad);
+        chord.velocity = velocity;
+        showVelocityHud(velocity);
+
+        playChordWithPadAnimation(chord, pad, velocity);
+        sequencer.recordChord({ ...chord, velocity });
       });
 
       borrowedPadsContainer.appendChild(pad);
     });
   }
 
-  // Helper to trigger audio and visual pad flash
-  function playChordWithPadAnimation(chord, padElement) {
-    audio.playChord(chord, null, 1.8);
+  function playChordWithPadAnimation(chord, padElement, velocity = 90) {
+    audio.playChord(chord, null, 1.8, velocity);
     if (padElement) {
       padElement.classList.add('playing');
       setTimeout(() => padElement.classList.remove('playing'), 250);
@@ -190,8 +268,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     slots.forEach((slot, index) => {
       const barNum = Math.floor(slot.startBeat / sequencer.beatsPerBar) + 1;
-      const beatInBar = (slot.startBeat % sequencer.beatsPerBar) + 1;
-
       const slotEl = document.createElement('div');
       slotEl.className = `slot-item relative flex-shrink-0 w-32 sm:w-36 p-3 rounded-xl border border-slate-700 bg-slate-800/90 flex flex-col justify-between transition-all shadow-md ${
         sequencer.selectedSlotIndex === index ? 'ring-2 ring-indigo-500' : ''
@@ -201,12 +277,16 @@ document.addEventListener('DOMContentLoaded', () => {
       slotEl.innerHTML = `
         <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
           <span class="font-mono bg-slate-900 px-1.5 py-0.5 rounded text-indigo-300">Khuông ${barNum}</span>
-          <button class="delete-slot-btn text-slate-500 hover:text-rose-400 p-0.5 rounded transition" title="Xóa hợp âm">✕</button>
+          <div class="flex items-center space-x-1">
+            <button class="view-slot-midi-btn text-sky-400 hover:text-sky-300 p-0.5" title="Mở Piano Roll MIDI">🎹</button>
+            <button class="delete-slot-btn text-slate-500 hover:text-rose-400 p-0.5 rounded transition" title="Xóa hợp âm">✕</button>
+          </div>
         </div>
         
         <div class="text-center py-2 cursor-pointer hover:opacity-90">
           <div class="text-2xl font-black text-white tracking-wide">${slot.chord.fullName}</div>
           <div class="text-xs text-indigo-400 font-mono mt-0.5">${slot.chord.degree || ''}</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Vel: ${slot.chord.velocity || 90}</div>
         </div>
 
         <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-700/60 text-xs">
@@ -225,9 +305,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Select slot to replace
       slotEl.addEventListener('click', (e) => {
-        if (e.target.closest('.delete-slot-btn') || e.target.closest('.slot-beats-select') || e.target.closest('.play-single-slot-btn')) return;
+        if (e.target.closest('.delete-slot-btn') || e.target.closest('.slot-beats-select') || e.target.closest('.play-single-slot-btn') || e.target.closest('.view-slot-midi-btn')) return;
         sequencer.selectedSlotIndex = (sequencer.selectedSlotIndex === index) ? -1 : index;
         renderTimelineSlots(sequencer.slots);
+      });
+
+      // Open MIDI for this slot
+      slotEl.querySelector('.view-slot-midi-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        pianoRoll.open();
       });
 
       // Delete Slot
@@ -246,13 +332,13 @@ document.addEventListener('DOMContentLoaded', () => {
       slotEl.querySelector('.play-single-slot-btn').addEventListener('click', async (e) => {
         e.stopPropagation();
         await audio.init();
-        audio.playChord(slot.chord, null, slot.beats * sequencer.getSecondsPerBeat());
+        audio.playChord(slot.chord, null, slot.beats * sequencer.getSecondsPerBeat(), slot.chord.velocity || 90);
       });
 
       timelineSlots.appendChild(slotEl);
     });
 
-    // Add Slot Placeholder (+) button at the end
+    // Add Slot (+) button at the end
     const addBtn = document.createElement('button');
     addBtn.className = 'flex-shrink-0 w-24 h-full min-h-[110px] rounded-xl border border-dashed border-slate-700 hover:border-indigo-500 bg-slate-900/40 hover:bg-slate-800/40 flex flex-col items-center justify-center text-slate-400 hover:text-indigo-400 transition cursor-pointer';
     addBtn.innerHTML = `
@@ -260,7 +346,6 @@ document.addEventListener('DOMContentLoaded', () => {
       <span class="text-[11px] mt-1">Thêm ô</span>
     `;
     addBtn.addEventListener('click', () => {
-      // Default add tonic chord
       const tonic = state.currentScaleChords[0];
       if (tonic) sequencer.addChord(tonic);
     });
@@ -270,6 +355,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. Sequencer Callbacks & UI Sync
   sequencer.onSlotsUpdate = (slots) => {
     renderTimelineSlots(slots);
+    if (pianoRoll.isOpen) {
+      pianoRoll.syncFromSequencer();
+      pianoRoll.resizeAndDraw();
+    }
   };
 
   sequencer.onSlotActive = (slotIndex) => {
@@ -284,7 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   sequencer.onBeatChange = (beatIdx, totalBeats, barIndex, beatInBar) => {
-    // Light up corresponding Beat LED
     beatLeds.forEach((led, idx) => {
       led.classList.remove('active-first', 'active-other');
       if (idx === beatInBar) {
@@ -296,31 +384,26 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Turn off LED after brief flash
     setTimeout(() => {
       beatLeds.forEach(led => led.classList.remove('active-first', 'active-other'));
     }, 120);
   };
 
   sequencer.onStateChange = (st) => {
-    // Sync Play button icon & color
     if (st.isPlaying) {
       playBtn.innerHTML = `
         <svg class="w-5 h-5 mr-1 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
         <span>Tạm dừng</span>
       `;
-      playBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-500');
-      playBtn.classList.add('bg-amber-600', 'hover:bg-amber-500');
+      playBtn.classList.replace('bg-indigo-600', 'bg-amber-600');
     } else {
       playBtn.innerHTML = `
         <svg class="w-5 h-5 mr-1 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         <span>Phát</span>
       `;
-      playBtn.classList.remove('bg-amber-600', 'hover:bg-amber-500');
-      playBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-500');
+      playBtn.classList.replace('bg-amber-600', 'bg-indigo-600');
     }
 
-    // Loop button badge
     if (st.isLooping) {
       loopBtn.classList.add('bg-indigo-600/30', 'text-indigo-400', 'border-indigo-500');
       loopBtn.classList.remove('text-slate-400');
@@ -329,7 +412,6 @@ document.addEventListener('DOMContentLoaded', () => {
       loopBtn.classList.add('text-slate-400');
     }
 
-    // Record button badge
     if (st.isRecording) {
       recordBtn.classList.add('bg-rose-600', 'text-white', 'animate-pulse');
       recordBtn.classList.remove('text-slate-400');
@@ -338,36 +420,26 @@ document.addEventListener('DOMContentLoaded', () => {
       recordBtn.classList.add('text-slate-400');
     }
 
-    // BPM Slider & Input
     bpmSlider.value = st.bpm;
     bpmInput.value = st.bpm;
+
+    if (pianoRoll.isOpen) {
+      pianoRoll.syncPlayBtn();
+      pianoRoll.syncLoopBtn();
+    }
   };
 
   // 4. UI Event Listeners
-
-  // Play / Pause
-  playBtn.addEventListener('click', () => {
-    sequencer.togglePlay();
-  });
-
-  // Stop
-  stopBtn.addEventListener('click', () => {
-    sequencer.stop();
-  });
-
-  // Loop toggle
+  playBtn.addEventListener('click', () => sequencer.togglePlay());
+  stopBtn.addEventListener('click', () => sequencer.stop());
   loopBtn.addEventListener('click', () => {
     sequencer.isLooping = !sequencer.isLooping;
     sequencer.onStateChange(sequencer.getState());
   });
-
-  // Record toggle
   recordBtn.addEventListener('click', () => {
     sequencer.isRecording = !sequencer.isRecording;
     sequencer.onStateChange(sequencer.getState());
   });
-
-  // Metronome toggle
   metronomeToggle.addEventListener('change', (e) => {
     sequencer.isMetronomeOn = e.target.checked;
   });
@@ -382,53 +454,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // BPM Slider & Input
-  bpmSlider.addEventListener('input', (e) => {
-    sequencer.setBpm(e.target.value);
-  });
-  bpmInput.addEventListener('change', (e) => {
-    sequencer.setBpm(e.target.value);
-  });
-  bpmMinusBtn.addEventListener('click', () => {
-    sequencer.setBpm(sequencer.bpm - 1);
-  });
-  bpmPlusBtn.addEventListener('click', () => {
-    sequencer.setBpm(sequencer.bpm + 1);
-  });
+  bpmSlider.addEventListener('input', (e) => sequencer.setBpm(e.target.value));
+  bpmInput.addEventListener('change', (e) => sequencer.setBpm(e.target.value));
+  bpmMinusBtn.addEventListener('click', () => sequencer.setBpm(sequencer.bpm - 1));
+  bpmPlusBtn.addEventListener('click', () => sequencer.setBpm(sequencer.bpm + 1));
+  barsSelect.addEventListener('change', (e) => sequencer.setBars(e.target.value));
+  timeSigSelect.addEventListener('change', (e) => sequencer.setBeatsPerBar(e.target.value));
 
-  // Measures / Bars select (2, 4, 8)
-  barsSelect.addEventListener('change', (e) => {
-    sequencer.setBars(e.target.value);
-  });
-
-  // Time signature select (4/4, 3/4)
-  timeSigSelect.addEventListener('change', (e) => {
-    sequencer.setBeatsPerBar(e.target.value);
-  });
-
-  // Scale Mode selector
   scaleModeSelect.addEventListener('change', (e) => {
     state.selectedMode = e.target.value;
     updateKeyAndChords();
   });
 
-  // 7th Chords toggle
   chordsToggle7th.addEventListener('change', (e) => {
     state.use7ths = e.target.checked;
     updateKeyAndChords();
   });
 
-  // Sound Instrument Selector
+  // General MIDI Instrument selection
   instrumentSelect.addEventListener('change', (e) => {
     audio.setInstrument(e.target.value);
   });
 
-  // Strumming selector
   strumSelect.addEventListener('change', (e) => {
     audio.setStrumStyle(e.target.value);
   });
 
-  // Volume Sliders
   masterVolumeSlider.addEventListener('input', (e) => {
     audio.setVolume(parseFloat(e.target.value));
   });
@@ -436,14 +487,18 @@ document.addEventListener('DOMContentLoaded', () => {
     audio.setMetronomeVolume(parseFloat(e.target.value));
   });
 
-  // Load Progression Preset
+  // Open Piano Roll MIDI Window Button
+  openPianoRollBtn.addEventListener('click', () => {
+    pianoRoll.open();
+  });
+
+  // Presets selector
   presetsSelect.addEventListener('change', (e) => {
     const idx = parseInt(e.target.value, 10);
     if (isNaN(idx)) return;
     const tpl = PROGRESSION_TEMPLATES[idx];
     if (!tpl) return;
 
-    // Switch mode if needed
     if (tpl.mode && tpl.mode !== state.selectedMode) {
       state.selectedMode = tpl.mode;
       scaleModeSelect.value = tpl.mode;
@@ -454,15 +509,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateKeyAndChords();
 
-    // Map degrees to chords
-    const progressionChords = tpl.degrees.map(degIdx => state.currentScaleChords[degIdx]).filter(Boolean);
+    const progressionChords = tpl.degrees.map(degIdx => ({ ...state.currentScaleChords[degIdx], velocity: 90 })).filter(Boolean);
     sequencer.loadProgression(progressionChords, tpl.defaultBeats || 4);
-
-    // Reset dropdown
     presetsSelect.value = '';
   });
 
-  // Export to MIDI file (.mid)
+  // Export MIDI
   exportMidiBtn.addEventListener('click', () => {
     if (sequencer.slots.length === 0) {
       alert('Chưa có hợp âm nào để xuất MIDI!');
@@ -472,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
     MidiWriter.download(sequencer.slots, sequencer.bpm, sequencer.beatsPerBar, filename);
   });
 
-  // Copy Progression as Text
+  // Copy text
   copyProgressionBtn.addEventListener('click', () => {
     if (sequencer.slots.length === 0) return;
     const textProg = sequencer.slots.map(s => s.chord.fullName).join(' - ');
@@ -483,7 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Clear Progression
+  // Clear
   clearProgressionBtn.addEventListener('click', () => {
     if (confirm('Bạn có chắc muốn xóa toàn bộ vòng hòa thanh hiện tại?')) {
       sequencer.clearSlots();
@@ -492,17 +544,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 5. Global Keyboard Shortcuts
   window.addEventListener('keydown', (e) => {
-    // Avoid triggering when focused on input/select
     if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
 
-    // Space: Play / Stop
     if (e.code === 'Space') {
       e.preventDefault();
       sequencer.togglePlay();
       return;
     }
 
-    // Number keys 1-7: Play corresponding scale degree chord
     const num = parseInt(e.key, 10);
     if (!isNaN(num) && num >= 1 && num <= 7) {
       e.preventDefault();
@@ -511,33 +560,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const pads = chordPadsContainer.querySelectorAll('.chord-pad');
         const pad = pads[num - 1];
         audio.init();
-        playChordWithPadAnimation(chord, pad);
+        const vel = 95;
+        showVelocityHud(vel);
+        playChordWithPadAnimation(chord, pad, vel);
         if (sequencer.isRecording) {
-          sequencer.recordChord(chord);
+          sequencer.recordChord({ ...chord, velocity: vel });
         }
       }
       return;
     }
 
-    // Key T: Tap Tempo
     if (e.key === 't' || e.key === 'T') {
       tapBtn.click();
       return;
     }
-
-    // Key L: Toggle Loop
     if (e.key === 'l' || e.key === 'L') {
       loopBtn.click();
       return;
     }
-
-    // Key R: Toggle Record
     if (e.key === 'r' || e.key === 'R') {
       recordBtn.click();
       return;
     }
-
-    // Key M: Toggle Metronome
     if (e.key === 'm' || e.key === 'M') {
       metronomeToggle.checked = !metronomeToggle.checked;
       sequencer.isMetronomeOn = metronomeToggle.checked;
@@ -545,8 +589,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Initial load: Set C Major and load Pop 4 Chords preset by default
+  // Initial setup: C Major and Pop 4 Chords preset
   updateKeyAndChords();
-  const defaultProgression = [0, 4, 5, 3].map(deg => state.currentScaleChords[deg]); // C - G - Am - F
+  const defaultProgression = [0, 4, 5, 3].map(deg => ({ ...state.currentScaleChords[deg], velocity: 92 }));
   sequencer.loadProgression(defaultProgression, 4);
 });
