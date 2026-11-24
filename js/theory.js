@@ -4,22 +4,6 @@
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const FLAT_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
-// Circle of Fifths order starting from C
-const CIRCLE_OF_FIFTHS = [
-  { root: 'C',  midi: 0,  minor: 'Am',  accidentals: 0,  label: 'C' },
-  { root: 'G',  midi: 7,  minor: 'Em',  accidentals: 1,  label: 'G (1#)' },
-  { root: 'D',  midi: 2,  minor: 'Bm',  accidentals: 2,  label: 'D (2#)' },
-  { root: 'A',  midi: 9,  minor: 'F#m', accidentals: 3,  label: 'A (3#)' },
-  { root: 'E',  midi: 4,  minor: 'C#m', accidentals: 4,  label: 'E (4#)' },
-  { root: 'B',  midi: 11, minor: 'G#m', accidentals: 5,  label: 'B (5#)' },
-  { root: 'F#', midi: 6,  minor: 'D#m', accidentals: 6,  label: 'F# / Gb (6#)' },
-  { root: 'Db', midi: 1,  minor: 'Bbm', accidentals: -5, label: 'Db / C# (5b)' },
-  { root: 'Ab', midi: 8,  minor: 'Fm',  accidentals: -4, label: 'Ab (4b)' },
-  { root: 'Eb', midi: 3,  minor: 'Cm',  accidentals: -3, label: 'Eb (3b)' },
-  { root: 'Bb', midi: 10, minor: 'Gm',  accidentals: -2, label: 'Bb (2b)' },
-  { root: 'F',  midi: 5,  minor: 'Dm',  accidentals: -1, label: 'F (1b)' },
-];
-
 // Scale intervals (semitones from tonic)
 const SCALE_MODES = {
   major: {
@@ -45,6 +29,30 @@ const SCALE_MODES = {
     triadTypes: ['min', 'dim', 'aug', 'min', 'maj', 'maj', 'dim'],
     seventhTypes: ['m(maj7)', 'm7b5', 'maj7#5', 'm7', '7', 'maj7', 'dim7'],
     functions: ['Tonic', 'Supertonic', 'Mediant', 'Subdominant', 'Dramatic Dominant', 'Submediant', 'Leading Tone']
+  },
+  major_penta: {
+    name: 'Major Pentatonic',
+    intervals: [0, 2, 4, 7, 9],
+    degreeNames: ['I', 'ii', 'iii', 'V', 'vi'],
+    triadTypes: ['maj', 'min', 'min', 'maj', 'min'],
+    seventhTypes: ['maj7', 'm7', 'm7', '7', 'm7'],
+    functions: ['Tonic', 'Supertonic', 'Mediant', 'Dominant', 'Submediant']
+  },
+  minor_penta: {
+    name: 'Minor Pentatonic',
+    intervals: [0, 3, 5, 7, 10],
+    degreeNames: ['i', 'bIII', 'iv', 'v', 'bVII'],
+    triadTypes: ['min', 'maj', 'min', 'min', 'maj'],
+    seventhTypes: ['m7', 'maj7', 'm7', 'm7', '7'],
+    functions: ['Tonic', 'Flat Mediant', 'Subdominant', 'Dominant', 'Subtonic']
+  },
+  blues: {
+    name: 'Blues Scale',
+    intervals: [0, 3, 5, 6, 7, 10],
+    degreeNames: ['I7', 'bIII', 'IV7', 'bV°', 'V7', 'bVII7'],
+    triadTypes: ['maj', 'maj', 'maj', 'dim', 'maj', 'maj'],
+    seventhTypes: ['7', '7', '7', 'dim7', '7', '7'],
+    functions: ['Tonic 7th', 'Blue 3rd', 'Subdominant 7th', 'Blue Note', 'Dominant 7th', 'Backdoor 7th']
   },
   dorian: {
     name: 'Dorian (Folk / Jazz Minor)',
@@ -208,7 +216,7 @@ function prefersFlats(rootNote, isMinor = false) {
 function getScaleChords(rootName, modeKey = 'major', use7ths = false) {
   const rootMidi = noteNameToMidi(rootName);
   const mode = SCALE_MODES[modeKey] || SCALE_MODES.major;
-  const useFlat = prefersFlats(rootName, modeKey.includes('minor'));
+  const useFlat = prefersFlats(rootName, modeKey.includes('minor') || modeKey.includes('penta'));
 
   const chords = [];
 
@@ -225,7 +233,6 @@ function getScaleChords(rootName, modeKey = 'major', use7ths = false) {
     const funcName = mode.functions[i];
 
     // Compute notes in octave 3/4 for voicing
-    // Root bass in octave 2 (36 + rootMidi) or octave 3 (48 + rootMidi)
     const bassMidi = 36 + chordRootMidi;
     const chordMidiNotes = [bassMidi];
 
@@ -250,7 +257,7 @@ function getScaleChords(rootName, modeKey = 'major', use7ths = false) {
 
   // Bonus: Add useful "Borrowed Chords" (Modal Interchange) for creative inspiration
   const borrowed = [];
-  if (modeKey === 'major') {
+  if (modeKey === 'major' || modeKey === 'major_penta') {
     // iv (Minor 4th - famous tearjerker)
     const ivMidi = (rootMidi + 5) % 12;
     borrowed.push({
@@ -295,7 +302,7 @@ function getScaleChords(rootName, modeKey = 'major', use7ths = false) {
       midiNotes: [36 + v6Midi, 48 + v6Midi, 48 + v6Midi + 4, 48 + v6Midi + 7, 48 + v6Midi + 10],
       isBorrowed: true
     });
-  } else if (modeKey === 'minor') {
+  } else if (modeKey.includes('minor') || modeKey === 'blues') {
     // V7 (Major/Dominant V in minor - harmonic minor feel)
     const vMidi = (rootMidi + 7) % 12;
     borrowed.push({
@@ -344,7 +351,6 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     NOTE_NAMES,
     FLAT_NAMES,
-    CIRCLE_OF_FIFTHS,
     SCALE_MODES,
     CHORD_INTERVALS,
     CHORD_DISPLAY_SUFFIX,

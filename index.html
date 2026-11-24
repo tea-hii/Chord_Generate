@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ChordFlow - Chord Progression Looper, Circle of Fifths & MIDI Studio</title>
-  <meta name="description" content="Interactive Chord Progression Generator, Circle of Fifths, MIDI Piano Roll Grid Editor, General MIDI Instruments, Velocity Sensitivity, and Metronome." />
+  <title>ChordFlow - Chord Progression Looper, Scale Studio & MIDI Grid</title>
+  <meta name="description" content="Streamlined Chord Progression Generator, Scale Degree Chords, MIDI Piano Roll Grid, General MIDI Instruments, and Metronome." />
   
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -30,35 +30,29 @@
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
 
   <!-- TOP NAVIGATION HEADER -->
-  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
-    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-4 py-2.5">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
       <!-- Logo & Title -->
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-sky-500 to-emerald-400 p-0.5 shadow-lg shadow-indigo-500/20">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-sky-500 to-emerald-400 p-0.5 shadow-md shadow-indigo-500/20">
           <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-            <span class="text-xl">🎵</span>
+            <span class="text-lg">🎵</span>
           </div>
         </div>
         <div>
-          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-            ChordFlow <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-950 text-indigo-400 border border-indigo-800/60">General MIDI Studio</span>
+          <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
+            ChordFlow <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-950 text-indigo-400 border border-indigo-800/60">Music Studio</span>
           </h1>
-          <p class="text-xs text-slate-400 hidden sm:block">Circle of Fifths, MIDI Piano Roll & Songwriting Inspiration Studio</p>
+          <p class="text-[11px] text-slate-400 hidden sm:block">Scale Chord Looper & Songwriting Inspiration Studio</p>
         </div>
       </div>
 
-      <!-- Real-time Velocity HUD Toast & Audio Settings in Header -->
+      <!-- Quick Sound Settings -->
       <div class="flex items-center flex-wrap gap-2 text-xs">
-        <!-- Floating Velocity HUD -->
-        <div id="velocity-hud" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 shadow-md opacity-0 transition-opacity duration-200">
-          <span class="text-slate-400 text-xs">Velocity:</span>
-          <span class="font-mono font-bold text-sky-400">Vel 90</span>
-        </div>
-
         <!-- General MIDI Instrument Selector -->
         <div class="flex items-center space-x-1 bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5">
-          <span class="text-slate-400">Instrument (GM):</span>
-          <select id="instrument-select" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer max-w-[200px] truncate">
+          <span class="text-slate-400">Instrument:</span>
+          <select id="instrument-select" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer max-w-[190px] truncate">
             <!-- Populated dynamically via app.js -->
           </select>
         </div>
@@ -83,72 +77,71 @@
   </header>
 
   <!-- MAIN CONTAINER -->
-  <main class="max-w-7xl mx-auto w-full px-3 sm:px-6 py-5 flex-1 flex flex-col gap-5">
+  <main class="max-w-6xl mx-auto w-full px-3 sm:px-6 py-4 flex-1 flex flex-col gap-4">
 
     <!-- 1. TRANSPORT & METRONOME CONTROLS PANEL -->
-    <section class="studio-card rounded-2xl p-4 sm:p-5">
-      <div class="flex flex-wrap items-center justify-between gap-4">
+    <section class="studio-card rounded-2xl p-3.5 sm:p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
         
         <!-- Left: Playback & Recording controls -->
-        <div class="flex items-center flex-wrap gap-2.5">
+        <div class="flex items-center flex-wrap gap-2">
           <!-- Play / Pause Button -->
-          <button id="play-btn" class="flex items-center justify-center px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all cursor-pointer">
-            <svg class="w-5 h-5 mr-1.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <button id="play-btn" class="flex items-center justify-center px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/30 transition-all cursor-pointer">
+            <svg class="w-4 h-4 mr-1.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
             <span>Play</span>
           </button>
 
           <!-- Stop Button -->
-          <button id="stop-btn" class="p-2.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer" title="Stop & Reset">
-            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+          <button id="stop-btn" class="p-2 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer" title="Stop & Reset">
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
           </button>
 
           <!-- Loop Toggle -->
-          <button id="loop-btn" class="flex items-center space-x-1 px-3 py-2 rounded-xl border border-indigo-500 bg-indigo-600/30 text-indigo-400 font-medium text-xs transition cursor-pointer" title="Toggle Loop">
-            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+          <button id="loop-btn" class="flex items-center space-x-1 px-3 py-1.5 rounded-xl border border-indigo-500 bg-indigo-600/30 text-indigo-400 font-medium text-xs transition cursor-pointer" title="Toggle Loop">
+            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
             <span>Loop</span>
           </button>
 
           <!-- Record Mode Toggle -->
-          <button id="record-btn" class="flex items-center space-x-1 px-3 py-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-400 font-medium text-xs hover:border-rose-600 transition cursor-pointer" title="Record Chords on Click">
-            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
-            <span>Record (Rec)</span>
+          <button id="record-btn" class="flex items-center space-x-1 px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-400 font-medium text-xs hover:border-rose-600 transition cursor-pointer" title="Record Chords on Click">
+            <span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>
+            <span>Record</span>
           </button>
         </div>
 
         <!-- Center: Tap Tempo & BPM Slider -->
-        <div class="flex items-center flex-wrap gap-3 bg-slate-900/90 border border-slate-800 rounded-xl px-3.5 py-2">
+        <div class="flex items-center flex-wrap gap-2.5 bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
           <!-- Big Tactile Tap Tempo Button -->
-          <button id="tap-tempo-btn" class="tap-btn px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-bold text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
+          <button id="tap-tempo-btn" class="tap-btn px-3 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-bold text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
             <span>👆 TAP TEMPO</span>
             <span id="tap-bpm-display" class="font-mono text-[11px] text-sky-200"></span>
           </button>
 
           <!-- BPM +/- & Slider -->
-          <div class="flex items-center space-x-2">
-            <button id="bpm-minus" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold flex items-center justify-center text-sm">-</button>
-            <input id="bpm-input" type="number" min="30" max="260" value="100" class="w-14 bg-slate-950 border border-slate-700 rounded text-center text-sm font-bold text-sky-400 py-0.5 focus:outline-none" />
-            <span class="text-xs text-slate-400 font-medium">BPM</span>
-            <button id="bpm-plus" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold flex items-center justify-center text-sm">+</button>
-            <input id="bpm-slider" type="range" min="40" max="220" value="100" class="w-20 sm:w-28 accent-sky-400 cursor-pointer" />
+          <div class="flex items-center space-x-1.5">
+            <button id="bpm-minus" class="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold flex items-center justify-center text-xs">-</button>
+            <input id="bpm-input" type="number" min="30" max="260" value="100" class="w-12 bg-slate-950 border border-slate-700 rounded text-center text-xs font-bold text-sky-400 py-0.5 focus:outline-none" />
+            <span class="text-[11px] text-slate-400">BPM</span>
+            <button id="bpm-plus" class="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold flex items-center justify-center text-xs">+</button>
+            <input id="bpm-slider" type="range" min="40" max="220" value="100" class="w-18 sm:w-24 accent-sky-400 cursor-pointer" />
           </div>
         </div>
 
         <!-- Right: Metronome Click & Measures -->
-        <div class="flex items-center flex-wrap gap-3 text-xs">
+        <div class="flex items-center flex-wrap gap-2.5 text-xs">
           <!-- Metronome Toggle -->
-          <label class="flex items-center space-x-2 cursor-pointer select-none bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-slate-800">
+          <label class="flex items-center space-x-1.5 cursor-pointer select-none bg-slate-900/80 px-2 py-1 rounded-lg border border-slate-800">
             <input id="metronome-toggle" type="checkbox" checked class="rounded accent-emerald-500 cursor-pointer" />
-            <span class="font-medium text-slate-300">⏱️ Metronome</span>
+            <span class="font-medium text-slate-300">⏱️ Click</span>
           </label>
 
           <!-- Metronome Volume Slider -->
           <div class="flex items-center space-x-1" title="Click Volume">
-            <span class="text-slate-500 text-[10px]">Click:</span>
-            <input id="metronome-volume" type="range" min="0" max="1" step="0.05" value="0.7" class="w-14 accent-emerald-500 cursor-pointer" />
+            <input id="metronome-volume" type="range" min="0" max="1" step="0.05" value="0.7" class="w-12 accent-emerald-500 cursor-pointer" />
           </div>
 
           <!-- Beat Visual Flashing LEDs -->
-          <div class="flex items-center space-x-1.5 bg-slate-950 px-2.5 py-2 rounded-lg border border-slate-800" title="Beats 1, 2, 3, 4 Indicator">
+          <div class="flex items-center space-x-1 bg-slate-950 px-2 py-1.5 rounded-lg border border-slate-800" title="Beats 1, 2, 3, 4 Indicator">
             <div class="beat-led" data-beat="0"></div>
             <div class="beat-led" data-beat="1"></div>
             <div class="beat-led" data-beat="2"></div>
@@ -157,7 +150,7 @@
 
           <!-- Measure config (2 Bars, 4 Bars, 8 Bars) -->
           <div class="flex items-center space-x-1">
-            <select id="bars-select" class="bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs px-2 py-1.5 focus:outline-none">
+            <select id="bars-select" class="bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs px-2 py-1 focus:outline-none">
               <option value="2" selected>2 Bars</option>
               <option value="4">4 Bars</option>
               <option value="8">8 Bars</option>
@@ -166,9 +159,9 @@
 
           <!-- Time signature (4/4, 3/4) -->
           <div class="flex items-center space-x-1">
-            <select id="time-sig-select" class="bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs px-2 py-1.5 focus:outline-none">
-              <option value="4" selected>4/4 Time</option>
-              <option value="3">3/4 Time (Waltz)</option>
+            <select id="time-sig-select" class="bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs px-2 py-1 focus:outline-none">
+              <option value="4" selected>4/4</option>
+              <option value="3">3/4 (Waltz)</option>
             </select>
           </div>
         </div>
@@ -177,185 +170,155 @@
     </section>
 
     <!-- 2. PROGRESSION TRACK (TIMELINE & SLOTS) -->
-    <section class="studio-card rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
-      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+    <section class="studio-card rounded-2xl p-3.5 sm:p-4 flex flex-col gap-2.5">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
         <div class="flex items-center space-x-2">
-          <span class="text-base font-bold text-white flex items-center gap-1.5">
-            <span>🎼</span> Active Progression Loop
+          <span class="text-sm font-bold text-white flex items-center gap-1.5">
+            <span>🎼</span> Progression Track
           </span>
-          <span class="text-xs text-slate-400"> (Loops continuously for melodic improvisation & vocal toplines)</span>
+          <span class="text-[11px] text-slate-400">(Auto-loops for humming melodies & writing toplines)</span>
         </div>
 
         <!-- Presets, MIDI Editor and Export Actions -->
         <div class="flex items-center flex-wrap gap-2 text-xs">
           <!-- Big Button: Open Piano Roll / MIDI Grid Window -->
-          <button id="open-pianoroll-btn" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow-md shadow-indigo-600/30 transition cursor-pointer flex items-center gap-1.5">
-            <span>🎹 Open MIDI Grid (Piano Roll)</span>
+          <button id="open-pianoroll-btn" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow-sm transition cursor-pointer flex items-center gap-1.5">
+            <span>🎹 MIDI Grid (Piano Roll)</span>
           </button>
 
           <!-- Inspiration Presets -->
           <div class="flex items-center space-x-1">
             <span class="text-indigo-400 font-semibold">💡 Presets:</span>
-            <select id="presets-select" class="bg-indigo-950/70 border border-indigo-700/60 rounded-lg text-indigo-200 text-xs px-2 py-1.5 font-medium focus:outline-none cursor-pointer">
-              <option value="">-- Choose a classic progression --</option>
+            <select id="presets-select" class="bg-indigo-950/70 border border-indigo-700/60 rounded-lg text-indigo-200 text-xs px-2 py-1 font-medium focus:outline-none cursor-pointer">
+              <option value="">-- Choose classic progression --</option>
             </select>
           </div>
 
           <!-- Copy text -->
-          <button id="copy-progression-btn" class="px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition cursor-pointer">
-            📋 Copy Text
+          <button id="copy-progression-btn" class="px-2 py-1 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition cursor-pointer">
+            📋 Copy
           </button>
 
           <!-- Export MIDI -->
-          <button id="export-midi-btn" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow transition cursor-pointer flex items-center gap-1">
-            <span>💾 Export MIDI (.mid)</span>
+          <button id="export-midi-btn" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition cursor-pointer flex items-center gap-1">
+            <span>💾 Export MIDI</span>
           </button>
 
           <!-- Clear -->
-          <button id="clear-progression-btn" class="px-2 py-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-950/30 transition cursor-pointer" title="Clear Progression">
+          <button id="clear-progression-btn" class="px-2 py-1 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-950/30 transition cursor-pointer" title="Clear Progression">
             Clear
           </button>
         </div>
       </div>
 
       <!-- Horizontal Progression Timeline Scroll -->
-      <div id="timeline-slots" class="flex items-stretch gap-3 overflow-x-auto py-2 custom-scrollbar min-h-[140px]">
-        <!-- Slots will be rendered here dynamically -->
+      <div id="timeline-slots" class="flex items-stretch gap-2.5 overflow-x-auto py-1.5 custom-scrollbar min-h-[110px]">
+        <!-- Slots rendered dynamically -->
       </div>
     </section>
 
-    <!-- 3. MAIN WORKSPACE: CIRCLE OF FIFTHS & CHORD DEGREES -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-
-      <!-- Left Column: Interactive Circle of Fifths (5 cols) -->
-      <section class="lg:col-span-5 studio-card rounded-2xl p-4 sm:p-5 flex flex-col items-center">
-        <div class="w-full flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
-          <div>
-            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-              <span>⭕</span> Circle of Fifths
-            </h2>
-            <p class="text-[11px] text-slate-400">Outer edge: <b>Forte (ff)</b> | Inner edge: <b>Piano (p)</b></p>
-          </div>
-          <div class="text-right">
-            <span id="current-key-title" class="text-base font-extrabold text-sky-400">C Major</span>
-          </div>
+    <!-- 3. STREAMLINED SCALE SELECTOR (ROOT NOTE + SCALE MODE) -->
+    <section class="studio-card rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3">
+      
+      <!-- Top Line: Current Scale Title & 7ths Toggle -->
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+        <div class="flex items-center space-x-3">
+          <span class="text-xs uppercase tracking-wider font-bold text-slate-400">Scale Selector:</span>
+          <span id="current-key-title" class="text-base sm:text-lg font-black text-sky-400">C Major (Ionian)</span>
         </div>
 
-        <!-- Scale Mode & 7th Chords Configuration -->
-        <div class="w-full flex items-center justify-between gap-2 mb-3 bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-xs">
-          <div class="flex items-center space-x-1.5 flex-1">
-            <span class="text-slate-400">Scale:</span>
-            <select id="scale-mode-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg text-white font-medium px-2 py-1 focus:outline-none cursor-pointer">
+        <div class="flex items-center space-x-3 text-xs">
+          <!-- Scale Mode Dropdown (Major, Minor, Pentatonic, Blues...) -->
+          <div class="flex items-center space-x-1.5">
+            <span class="text-slate-400 font-medium">Type:</span>
+            <select id="scale-mode-select" class="bg-slate-900 border border-slate-700 rounded-lg text-white font-semibold px-2.5 py-1 focus:outline-none cursor-pointer">
               <option value="major">Major (Ionian)</option>
               <option value="minor">Natural Minor (Aeolian)</option>
               <option value="harmonic_minor">Harmonic Minor</option>
+              <option value="major_penta">Major Pentatonic</option>
+              <option value="minor_penta">Minor Pentatonic</option>
+              <option value="blues">Blues Scale</option>
               <option value="dorian">Dorian (Folk / Jazz)</option>
               <option value="mixolydian">Mixolydian (Blues / Rock)</option>
             </select>
           </div>
 
-          <label class="flex items-center space-x-1.5 cursor-pointer select-none pl-2 border-l border-slate-700">
+          <!-- 7th Chords Toggle -->
+          <label class="flex items-center space-x-1.5 cursor-pointer select-none bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-800">
             <input id="toggle-7th" type="checkbox" class="rounded accent-indigo-500 cursor-pointer" />
             <span class="font-semibold text-indigo-300">7th Chords (7ths)</span>
           </label>
         </div>
+      </div>
 
-        <!-- SVG Circle Container with Velocity -->
-        <div id="circle-container" class="w-full flex justify-center py-2">
-          <!-- Rendered via circle.js -->
+      <!-- Root Key Button Strip (C, C#, D, D#, E, F, F#, G, G#, A, A#, B) -->
+      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <span class="text-xs text-slate-400 font-medium mr-1">Root Key:</span>
+        <div id="root-key-buttons" class="flex flex-wrap items-center gap-1.5">
+          <!-- Populated dynamically via app.js -->
         </div>
+      </div>
 
-        <!-- Velocity & Harmonic Legend -->
-        <div class="w-full mt-3 pt-3 border-t border-slate-800 text-[11px] text-slate-400 flex flex-wrap justify-around gap-2">
-          <div class="flex items-center space-x-1">
-            <span class="w-2.5 h-2.5 rounded bg-indigo-600 inline-block"></span>
-            <span>Tonic (I)</span>
-          </div>
-          <div class="flex items-center space-x-1">
-            <span class="w-2.5 h-2.5 rounded bg-sky-600 inline-block"></span>
-            <span>Subdominant (IV)</span>
-          </div>
-          <div class="flex items-center space-x-1">
-            <span class="w-2.5 h-2.5 rounded bg-amber-600 inline-block"></span>
-            <span>Dominant (V)</span>
-          </div>
-          <div class="flex items-center space-x-1 text-emerald-400">
-            <span>⚡ Touch position controls Velocity</span>
-          </div>
+    </section>
+
+    <!-- 4. COMPACT SCALE DEGREE CHORD PADS -->
+    <section class="studio-card rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3">
+      <div class="flex items-center justify-between pb-1">
+        <div>
+          <h2 class="text-xs uppercase tracking-wider font-bold text-white flex items-center gap-1.5">
+            <span>🎹</span> Diatonic Chords
+          </h2>
+          <p class="text-[11px] text-slate-400">Click to play sound and add to progression (or press keys 1-7 on keyboard)</p>
         </div>
-      </section>
+        <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">Clean Polyphony</span>
+      </div>
 
-      <!-- Right Column: Scale Degrees Chord Pads I - VII (7 cols) -->
-      <section class="lg:col-span-7 flex flex-col gap-4">
+      <!-- Compact Chord Pads Grid -->
+      <div id="chord-pads-container" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+        <!-- Rendered dynamically via app.js -->
+      </div>
 
-        <!-- Diatonic Chords Pads (Degrees I to VII) -->
-        <div class="studio-card rounded-2xl p-4 sm:p-5">
-          <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
-            <div>
-              <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <span>🎹</span> Scale Degree Chord Pads (I - VII)
-              </h2>
-              <p class="text-[11px] text-slate-400">Top click: <b>Forte (f)</b> | Bottom click: <b>Piano (p)</b> | Keys 1-7 on keyboard</p>
-            </div>
-            <span class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">Dynamic Velocity</span>
-          </div>
-
-          <!-- Chord Pads Grid -->
-          <div id="chord-pads-container" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <!-- Rendered dynamically via app.js -->
-          </div>
+      <!-- Compact Borrowed Chords (Modal Interchange) -->
+      <div id="borrowed-section" class="pt-2 border-t border-slate-800/80">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-semibold text-purple-300 flex items-center gap-1">
+            <span>✨</span> Borrowed Chords (Inspiring Non-Diatonic Cadences):
+          </span>
         </div>
-
-        <!-- Borrowed Chords (Modal Interchange) -->
-        <div id="borrowed-section" class="studio-card rounded-2xl p-4 sm:p-5">
-          <div class="flex items-center justify-between mb-2">
-            <div>
-              <h3 class="text-sm font-bold text-purple-300 flex items-center gap-1.5">
-                <span>✨</span> Borrowed Chords (Modal Interchange)
-              </h3>
-              <p class="text-[11px] text-slate-400">Out-of-key chords that add intense emotion, drama, and unexpected color</p>
-            </div>
-            <span class="text-[11px] px-2 py-0.5 rounded bg-purple-900/60 text-purple-300 border border-purple-800">Inspiring Colors</span>
-          </div>
-
-          <div id="borrowed-pads-container" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-2">
-            <!-- Rendered dynamically -->
-          </div>
+        <div id="borrowed-pads-container" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <!-- Rendered dynamically via app.js -->
         </div>
+      </div>
+    </section>
 
-        <!-- Songwriting Tips & Keyboard Shortcuts Box -->
-        <div class="studio-card rounded-2xl p-4 bg-slate-900/50 border border-slate-800 text-xs text-slate-400 flex flex-col gap-2">
-          <div class="font-bold text-slate-200 flex items-center gap-1">
-            <span>⌨️</span> Keyboard Shortcuts:
-          </div>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">Space</kbd>: Play / Pause</div>
-            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">1 - 7</kbd>: Play Chord Degrees 1-7</div>
-            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">T</kbd>: Tap Tempo</div>
-            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">L</kbd>: Toggle Loop</div>
-            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">R</kbd>: Record Chords</div>
-            <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">M</kbd>: Toggle Metronome</div>
-          </div>
-        </div>
-
-      </section>
-
-    </div>
+    <!-- 5. SHORTCUTS & TIPS FOOTER BAR -->
+    <section class="studio-card rounded-xl p-3 bg-slate-900/40 border border-slate-800 text-[11px] text-slate-400 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center space-x-1 font-semibold text-slate-300">
+        <span>⌨️ Shortcuts:</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">Space</kbd> Play / Pause</div>
+        <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">1 - 7</kbd> Play Degree Chords</div>
+        <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">T</kbd> Tap Tempo</div>
+        <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">L</kbd> Loop</div>
+        <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">R</kbd> Record</div>
+        <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">M</kbd> Metronome</div>
+      </div>
+    </section>
 
   </main>
 
   <!-- FOOTER -->
-  <footer class="border-t border-slate-800 bg-slate-950/80 py-4 px-4 text-center text-xs text-slate-500">
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-      <p>ChordFlow - Visual Chord Progression & Songwriting Studio (Web Audio & MIDI Export).</p>
-      <p class="text-slate-600">Ready for 1-click GitHub Pages deployment.</p>
+  <footer class="border-t border-slate-800 bg-slate-950/80 py-3 px-4 text-center text-xs text-slate-500">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p>ChordFlow - Compact Chord Progression & Songwriting Studio.</p>
+      <p class="text-slate-600">Standard MIDI Export ready.</p>
     </div>
   </footer>
 
   <!-- App Scripts -->
   <script src="js/theory.js"></script>
   <script src="js/audio.js"></script>
-  <script src="js/circle.js"></script>
   <script src="js/sequencer.js"></script>
   <script src="js/pianoroll.js"></script>
   <script src="js/midi.js"></script>

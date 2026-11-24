@@ -26,29 +26,29 @@ body {
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
-/* Pulse animation for playing chord */
+/* Pulse animation for playing chord slot */
 @keyframes chordPulse {
   0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
-  50% { transform: scale(1.03); box-shadow: 0 0 20px 4px rgba(99, 102, 241, 0.4); }
+  50% { transform: scale(1.02); box-shadow: 0 0 16px 3px rgba(99, 102, 241, 0.4); }
   100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
 }
 
 .playing-slot {
-  animation: chordPulse 0.4s ease-out;
+  animation: chordPulse 0.35s ease-out;
   border-color: #38bdf8 !important;
   background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(99, 102, 241, 0.25)) !important;
 }
 
 /* Tap tempo button tap ripple */
 .tap-btn:active {
-  transform: scale(0.94);
+  transform: scale(0.95);
   background-color: #0284c7 !important;
 }
 
 /* Beat LED indicators */
 .beat-led {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border-radius: 9999px;
   background-color: #1f2937;
   transition: all 0.08s ease;
@@ -57,8 +57,8 @@ body {
 
 .beat-led.active-first {
   background-color: #22c55e !important;
-  box-shadow: 0 0 14px 4px #22c55e, inset 0 1px 2px rgba(255,255,255,0.8);
-  transform: scale(1.25);
+  box-shadow: 0 0 12px 3px #22c55e, inset 0 1px 2px rgba(255,255,255,0.8);
+  transform: scale(1.2);
 }
 
 .beat-led.active-other {
@@ -67,7 +67,7 @@ body {
   transform: scale(1.15);
 }
 
-/* Chord Degree Pad Hover and Active states */
+/* Compact Chord Degree Pad */
 .chord-pad {
   transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
@@ -76,7 +76,7 @@ body {
 .chord-pad:hover {
   transform: translateY(-2px);
   border-color: rgba(99, 102, 241, 0.5);
-  box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.5);
 }
 
 .chord-pad:active, .chord-pad.playing {
@@ -85,9 +85,21 @@ body {
   background: linear-gradient(180deg, rgba(99, 102, 241, 0.3), rgba(30, 41, 59, 0.8)) !important;
 }
 
-/* Custom scrollbars for progression track */
+/* Root note selector buttons */
+.root-key-btn {
+  transition: all 0.12s ease;
+}
+.root-key-btn.active {
+  background-color: #4f46e5 !important;
+  border-color: #818cf8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+}
+
+/* Custom scrollbars */
 .custom-scrollbar::-webkit-scrollbar {
-  height: 8px;
+  height: 6px;
+  width: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: rgba(15, 23, 42, 0.6);
@@ -99,12 +111,4 @@ body {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(99, 102, 241, 0.8);
-}
-
-/* Circle of Fifths SVG Hover Glow */
-.circle-svg path {
-  transition: fill 0.18s ease, stroke 0.18s ease, transform 0.18s ease;
-}
-.circle-svg path:hover {
-  filter: brightness(1.25);
 }
