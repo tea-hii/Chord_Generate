@@ -45,7 +45,15 @@ Built entirely with standard **HTML5 and Web Audio API**, requiring zero backend
 - **Real-Time Playhead**: Sweeps smoothly across the grid in real-time synchronization with the Web Audio clock.
 - **Draw & Edit Notes**: Click any empty grid cell to draw a new MIDI note, click an existing note to delete it, or click piano keys on the left to preview pitch.
 
-### 5. 🎹 General MIDI (GM) Standard Instrument Soundbank
+### 5. 🎸 Emotional Accompaniment Styles & 6-String Guitar Voicing Engine
+- **Fingerpicking (Ballad Pluck)**: Emulates a singer-songwriter picking an acoustic guitar or ballad piano. Triggers a deep, resonant bass note on beat 1, followed by rolling 8th-note string plucks (Bass -> 3rd -> 5th -> High Melody -> Alternating Bass -> 3rd -> High Melody -> 5th) that ring out and breathe naturally.
+- **Acoustic Strum (Groove)**: Authentic rhythmic acoustic guitar strumming with humanized micro-staggers (~24ms delay between strings) and musical down/up strum velocity contours across the measure.
+- **Walking Bass + Comping (Passing Notes)**: Plays a strong, punchy root bass note on beat 1, off-beat syncopated chord comping, and calculates an automatic **single passing note (walking bass leading tone)** right before the next chord transition (e.g., C -> B passing note -> Am).
+- **Piano Ballad Arpeggio**: Flowing, cascading 2-octave rolling arpeggio ideal for emotional pop and ballad compositions.
+- **Block Chord**: Direct simultaneous trigger for checking raw harmony and voicings.
+- **6-String Open Voicing Engine**: Expands traditional closed 3-note triads into wide, studio-grade 6-string open voicings spanning 2.5 octaves (e.g., C2 - G2 - C3 - E3 - G3 - C4; A2 - E3 - A3 - C4 - E4 - A4), delivering immense warmth, fullness, and emotional resonance.
+
+### 6. 🎹 General MIDI (GM) Standard Instrument Soundbank
 Features 16 standard General MIDI instruments synthesized via Web Audio API with studio convolution reverb:
 - **Pianos**: `001. Acoustic Grand Piano`, `002. Bright Acoustic Piano`
 - **Electric Pianos**: `005. Electric Piano 1 (Rhodes)`, `006. Electric Piano 2 (DX7 FM Sparkle)`

@@ -324,10 +324,25 @@ class Sequencer {
       const slot = this.slots[i];
       const slotStart = slot.startBeat % totalBeats;
       if (Math.abs(slotStart - beatIdx) < 0.15) {
-        if (slot.chord && slot.chord.midiNotes) {
+        if (slot.chord && (slot.chord.midiNotes || slot.chord.rootName)) {
           const chordDuration = slot.beats * secPerBeat * 0.95;
           const vel = slot.velocity || slot.chord.velocity || 90;
-          this.audio.playChord(slot.chord, beatTime, chordDuration, vel);
+
+          // Find next active chord in progression loop for walking bass passing note
+          let nextChord = null;
+          for (let j = 1; j < this.slots.length; j++) {
+            const nextSlot = this.slots[(i + j) % this.slots.length];
+            if (nextSlot && nextSlot.chord) {
+              nextChord = nextSlot.chord;
+              break;
+            }
+          }
+
+          this.audio.playChord(slot.chord, beatTime, chordDuration, vel, {
+            beats: slot.beats,
+            secPerBeat: secPerBeat,
+            nextChord: nextChord
+          });
         }
         break;
       }

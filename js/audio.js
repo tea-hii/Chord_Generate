@@ -32,7 +32,7 @@ class AudioEngine {
     this.instrument = 'gm_0_grand_piano';
     this.volume = 0.8;
     this.metronomeVolume = 0.7;
-    this.strumStyle = 'gentle'; // 'none', 'gentle', 'arpeggio'
+    this.strumStyle = 'fingerstyle'; // 'fingerstyle', 'strum', 'walking_bass', 'piano_arpeggio', 'block'
     this.defaultVelocity = 90; // Default MIDI velocity (0-127)
     this.isMuted = false;
   }
@@ -701,28 +701,197 @@ class AudioEngine {
     osc1.stop(stopTime); osc2.stop(stopTime);
   }
 
-  // Play a full chord at a specific timestamp with customized or default velocity
-  playChord(chord, startTime = null, duration = 2.2, velocity = null) {
-    if (!chord || !chord.midiNotes) return;
+  // Build a rich, resonant 6-string open guitar/piano voicing
+  buildVoicing(chord) {
+    if (!chord) return [48, 52, 55, 60];
+
+    // Determine root pitch class (0..11)
+    let rootPitchClass = 0;
+    if (chord.rootName && typeof noteNameToMidi === 'function') {
+      rootPitchClass = (noteNameToMidi(chord.rootName) % 12 + 12) % 12;
+    } else if (chord.midiNotes && chord.midiNotes.length > 0) {
+      rootPitchClass = (chord.midiNotes[0] % 12 + 12) % 12;
+    }
+
+    const intervals = chord.intervals || (typeof CHORD_INTERVALS !== 'undefined' && CHORD_INTERVALS[chord.type]) || [0, 4, 7];
+    const thirdInterval = intervals[1] !== undefined ? intervals[1] : 4;
+    const fifthInterval = intervals[2] !== undefined ? intervals[2] : 7;
+    const seventhInterval = intervals[3] !== undefined ? intervals[3] : (intervals[2] || 7);
+
+    // Realistic acoustic guitar root range (E2=40 to D#3=51)
+    // Low register bass notes for maximum warmth and acoustic depth
+    const p = rootPitchClass;
+    let bass = 36 + p;
+    if (p >= 4 && p <= 8) {
+      bass = 40 + (p - 4); // E2(40), F2(41), F#2(42), G2(43), G#2(44)
+    } else if (p >= 9) {
+      bass = 45 + (p - 9); // A2(45), A#2(46), B2(47)
+    } else {
+      bass = 36 + p; // C2(36), C#2(37), D2(38), D#2(39)
+    }
+
+    const string0 = bass; // String 6: Deep Root Bass
+    const string1 = bass + fifthInterval; // String 5: Fifth
+    const string2 = bass + 12; // String 4: Octave Root
+    const string3 = bass + 12 + thirdInterval; // String 3: Third
+    const string4 = bass + 12 + (chord.type && chord.type.includes('7') ? seventhInterval : fifthInterval); // String 2: 5th or 7th
+    const string5 = bass + 24; // String 1: High Top Root
+
+    return [string0, string1, string2, string3, string4, string5];
+  }
+
+  // Play a full chord with authentic accompaniment style (Fingerpicking, Strum, Walking Bass, Arpeggio, Block)
+  playChord(chord, startTime = null, duration = 2.2, velocity = null, options = {}) {
+    if (!chord || (!chord.midiNotes && !chord.rootName)) return;
     if (!this.ctx) return;
 
     const t = startTime !== null ? startTime : this.ctx.currentTime;
-    const notes = chord.midiNotes;
     const baseVel = velocity !== null ? velocity : (chord.velocity || this.defaultVelocity);
+    const secPerBeat = options.secPerBeat || 0.6; // 100 BPM fallback
+    const nextChord = options.nextChord || null;
 
-    let staggerStep = 0;
-    if (this.strumStyle === 'gentle') {
-      staggerStep = 0.024;
-    } else if (this.strumStyle === 'arpeggio') {
-      staggerStep = 0.085;
+    const strings = this.buildVoicing(chord);
+    const style = this.strumStyle || 'fingerstyle';
+
+    switch (style) {
+      case 'fingerstyle': {
+        // Authentic acoustic ballad fingerpicking pattern across the duration
+        const step = secPerBeat * 0.5; // 8th note interval
+        const maxSteps = Math.max(2, Math.floor(duration / step));
+
+        // 8-step acoustic pattern index maps to strings: [Bass, 5th, MidRoot, 3rd, 5thHigh, HighTop]
+        // Pluck order: Bass -> 3rd -> 5th -> HighTop -> AltBass -> 3rd -> HighTop -> 5th
+        const patternIndices = [0, 3, 4, 5, 1, 3, 5, 4];
+        const velMultipliers = [1.15, 0.85, 0.9, 0.98, 1.05, 0.85, 0.92, 0.8];
+        const noteDurations = [step * 3.5, step * 2.0, step * 2.0, step * 2.2, step * 3.0, step * 2.0, step * 2.0, step * 1.8];
+
+        for (let i = 0; i < maxSteps; i++) {
+          const noteTime = t + i * step;
+          if (noteTime >= t + duration - 0.02) break;
+
+          const pIdx = i % patternIndices.length;
+          const strIdx = patternIndices[pIdx];
+          const midi = strings[strIdx] || strings[0];
+          const v = Math.round(Math.min(127, Math.max(25, baseVel * velMultipliers[pIdx])));
+          const d = Math.min(noteDurations[pIdx], (t + duration) - noteTime);
+
+          this.playNote(midi, noteTime, d, v);
+        }
+        break;
+      }
+
+      case 'strum': {
+        // Dynamic rhythmic acoustic guitar strumming with down/up groove
+        // Beat 1 (t+0): Full Down-strum (all 6 strings)
+        this.playStrumChord(strings, t, Math.min(duration, secPerBeat * 1.8), baseVel * 1.1, true);
+
+        // If slot duration has 2 or more beats, add rhythmic strums
+        if (duration >= secPerBeat * 1.8) {
+          // Beat 2: Light down-strum
+          this.playStrumChord(strings.slice(2), t + secPerBeat, secPerBeat * 0.9, baseVel * 0.78, true);
+        }
+        if (duration >= secPerBeat * 2.3) {
+          // Beat 2&: Up-strum
+          this.playStrumChord(strings.slice(2), t + secPerBeat * 1.5, secPerBeat * 0.8, baseVel * 0.72, false);
+        }
+        if (duration >= secPerBeat * 3.2) {
+          // Beat 3: Driving down-strum
+          this.playStrumChord(strings.slice(1), t + secPerBeat * 2.0, secPerBeat * 1.1, baseVel * 0.92, true);
+        }
+        if (duration >= secPerBeat * 3.7) {
+          // Beat 4: Down + Up-strum
+          this.playStrumChord(strings.slice(2), t + secPerBeat * 3.0, secPerBeat * 0.8, baseVel * 0.85, true);
+          this.playStrumChord(strings.slice(2), t + secPerBeat * 3.5, secPerBeat * 0.6, baseVel * 0.75, false);
+        }
+        break;
+      }
+
+      case 'walking_bass': {
+        // Melodic Bass Root + Comping + Passing Walking Bass note leading to next chord
+        // 1. Beat 1: Heavy Root Bass note
+        const bassMidi = strings[0];
+        const bassDur = Math.min(duration, secPerBeat * 1.5);
+        this.playNote(bassMidi, t, bassDur, Math.round(Math.min(127, baseVel * 1.2)));
+
+        // 2. Off-beat Comping chord stabs
+        if (duration >= secPerBeat * 1.2) {
+          const compNotes = [strings[2], strings[3], strings[4]];
+          compNotes.forEach(m => {
+            this.playNote(m, t + secPerBeat * 0.75, secPerBeat * 0.5, Math.round(baseVel * 0.85));
+          });
+        }
+        if (duration >= secPerBeat * 2.4) {
+          const compNotes = [strings[2], strings[3], strings[4]];
+          compNotes.forEach(m => {
+            this.playNote(m, t + secPerBeat * 1.75, secPerBeat * 0.5, Math.round(baseVel * 0.8));
+          });
+        }
+
+        // 3. Passing Walking Bass Note leading into next chord root
+        if (duration >= secPerBeat * 1.8) {
+          const passingTime = t + duration - (secPerBeat * 0.5);
+          let passingMidi = bassMidi + 2; // Default scale step up
+
+          if (nextChord) {
+            const nextStrings = this.buildVoicing(nextChord);
+            const targetBass = nextStrings[0];
+            if (targetBass > bassMidi) {
+              passingMidi = targetBass - 1; // Leading note from below
+            } else if (targetBass < bassMidi) {
+              passingMidi = targetBass + 1; // Approach from above
+            } else {
+              passingMidi = bassMidi + 7; // 5th of chord
+            }
+          } else {
+            passingMidi = bassMidi - 1; // Romantic half-step leading tone
+          }
+
+          this.playNote(passingMidi, passingTime, secPerBeat * 0.65, Math.round(Math.min(127, baseVel * 1.08)));
+        }
+        break;
+      }
+
+      case 'piano_arpeggio': {
+        // Flowing piano ballad arpeggio across 2 octaves
+        const step = secPerBeat * 0.375; // 16th/8th roll
+        const maxSteps = Math.max(3, Math.floor(duration / step));
+        const arpeggioNotes = [strings[0], strings[1], strings[2], strings[3], strings[4], strings[5], strings[4], strings[3]];
+
+        for (let i = 0; i < maxSteps; i++) {
+          const noteTime = t + i * step;
+          if (noteTime >= t + duration - 0.02) break;
+
+          const midi = arpeggioNotes[i % arpeggioNotes.length];
+          const isBass = (i % arpeggioNotes.length) === 0;
+          const v = Math.round(Math.min(127, Math.max(25, isBass ? baseVel * 1.15 : baseVel * (0.82 + (i % 3) * 0.06))));
+          this.playNote(midi, noteTime, step * 2.5, v);
+        }
+        break;
+      }
+
+      case 'block':
+      default: {
+        // Classic simultaneous block chord
+        const notesToPlay = chord.midiNotes && chord.midiNotes.length >= 3 ? chord.midiNotes : strings.slice(0, 4);
+        notesToPlay.forEach((midi, idx) => {
+          const isBass = idx === 0;
+          const noteVel = Math.round(Math.min(127, Math.max(20, isBass ? baseVel * 1.05 : baseVel * (0.9 + (idx % 2) * 0.1))));
+          this.playNote(midi, t, duration, noteVel);
+        });
+        break;
+      }
     }
+  }
 
+  // Helper to strum a list of strings with humanized micro-stagger
+  playStrumChord(noteList, startTime, duration, velocity, isDown = true) {
+    if (!noteList || !noteList.length || !this.ctx) return;
+    const notes = isDown ? [...noteList] : [...noteList].reverse();
+    const stagger = 0.022 + Math.random() * 0.005; // ~24ms between strings
     notes.forEach((midi, idx) => {
-      const noteTime = t + (idx * staggerStep);
-      const isBass = idx === 0;
-      // Slight musical humanization of velocity per voice
-      const noteVel = Math.round(Math.min(127, Math.max(20, isBass ? baseVel * 1.05 : baseVel * (0.9 + (idx % 2) * 0.1))));
-      this.playNote(midi, noteTime, duration, noteVel);
+      const noteTime = startTime + idx * stagger;
+      const vel = Math.round(Math.min(127, Math.max(20, velocity * (0.92 + (idx % 2) * 0.08))));
+      this.playNote(midi, noteTime, duration, vel);
     });
   }
 

@@ -60,13 +60,15 @@
           </select>
         </div>
 
-        <!-- Strumming style -->
-        <div class="flex items-center space-x-1 bg-slate-800/80 border border-slate-700 rounded-lg px-2 py-1.5">
-          <span class="text-slate-400">Strum:</span>
-          <select id="strum-select" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer">
-            <option value="gentle" class="bg-slate-900">Natural Strum</option>
-            <option value="none" class="bg-slate-900">Block Chord</option>
-            <option value="arpeggio" class="bg-slate-900">Arpeggio Roll</option>
+        <!-- Accompaniment Playback Style -->
+        <div class="flex items-center space-x-1.5 bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5" title="Accompaniment Playback Style">
+          <span class="text-slate-400 font-medium">Style:</span>
+          <select id="strum-select" class="bg-transparent text-white font-bold focus:outline-none cursor-pointer text-xs max-w-[210px] truncate">
+            <option value="fingerstyle" class="bg-slate-900" selected>🎸 Fingerpicking (Ballad Pluck)</option>
+            <option value="strum" class="bg-slate-900">🎸 Acoustic Strum (Groove)</option>
+            <option value="walking_bass" class="bg-slate-900">🚶 Walking Bass + Comping</option>
+            <option value="piano_arpeggio" class="bg-slate-900">🎹 Piano Ballad Arpeggio</option>
+            <option value="block" class="bg-slate-900">⏹️ Block Chord (Simultaneous)</option>
           </select>
         </div>
 
@@ -320,12 +322,12 @@
   </footer>
 
   <!-- App Scripts with Cache Busting -->
-  <script src="js/theory.js?v=2.3"></script>
-  <script src="js/audio.js?v=2.3"></script>
-  <script src="js/sequencer.js?v=2.3"></script>
-  <script src="js/pianoroll.js?v=2.3"></script>
-  <script src="js/slotModal.js?v=2.3"></script>
-  <script src="js/midi.js?v=2.3"></script>
-  <script src="js/app.js?v=2.3"></script>
+  <script src="js/theory.js?v=2.4"></script>
+  <script src="js/audio.js?v=2.4"></script>
+  <script src="js/sequencer.js?v=2.4"></script>
+  <script src="js/pianoroll.js?v=2.4"></script>
+  <script src="js/slotModal.js?v=2.4"></script>
+  <script src="js/midi.js?v=2.4"></script>
+  <script src="js/app.js?v=2.4"></script>
 </body>
 </html>

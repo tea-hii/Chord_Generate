@@ -130,6 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     instrumentSelect.appendChild(optGroup);
   }
+  instrumentSelect.value = audio.instrument;
+  if (strumSelect) strumSelect.value = audio.strumStyle;
 
   // 3. Populate Progression Presets (Compact clean labels to prevent overflow)
   PROGRESSION_TEMPLATES.forEach((tpl, idx) => {
@@ -262,7 +264,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function playChordWithPadAnimation(chord, padElement) {
     if (!chord) return;
-    audio.playChord(chord, null, 1.8, chord.velocity || 90);
+    const secPerBeat = sequencer ? sequencer.getSecondsPerBeat() : 0.6;
+    audio.playChord(chord, null, 2.2, chord.velocity || 90, {
+      beats: 4.0,
+      secPerBeat: secPerBeat
+    });
     if (padElement) {
       padElement.classList.add('playing');
       setTimeout(() => padElement.classList.remove('playing'), 220);
@@ -372,7 +378,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (slot.chord) {
           audio.init().then(() => {
-            audio.playChord(slot.chord, null, slot.beats * sequencer.getSecondsPerBeat(), slot.velocity || 90);
+            let nextChord = null;
+            for (let j = 1; j < sequencer.slots.length; j++) {
+              const nextSlot = sequencer.slots[(index + j) % sequencer.slots.length];
+              if (nextSlot && nextSlot.chord) {
+                nextChord = nextSlot.chord;
+                break;
+              }
+            }
+            audio.playChord(slot.chord, null, slot.beats * sequencer.getSecondsPerBeat(), slot.velocity || 90, {
+              beats: slot.beats,
+              secPerBeat: sequencer.getSecondsPerBeat(),
+              nextChord: nextChord
+            });
           });
         }
 
@@ -428,7 +446,19 @@ document.addEventListener('DOMContentLoaded', () => {
         playSingleBtn.addEventListener('click', async (e) => {
           e.stopPropagation();
           await audio.init();
-          audio.playChord(slot.chord, null, slot.beats * sequencer.getSecondsPerBeat(), slot.velocity || 90);
+          let nextChord = null;
+          for (let j = 1; j < sequencer.slots.length; j++) {
+            const nextSlot = sequencer.slots[(index + j) % sequencer.slots.length];
+            if (nextSlot && nextSlot.chord) {
+              nextChord = nextSlot.chord;
+              break;
+            }
+          }
+          audio.playChord(slot.chord, null, slot.beats * sequencer.getSecondsPerBeat(), slot.velocity || 90, {
+            beats: slot.beats,
+            secPerBeat: sequencer.getSecondsPerBeat(),
+            nextChord: nextChord
+          });
         });
       }
 
@@ -454,7 +484,19 @@ document.addEventListener('DOMContentLoaded', () => {
             renderTimelineSlots(sequencer.slots);
 
             await audio.init();
-            audio.playChord(chordData, null, slot.beats * sequencer.getSecondsPerBeat(), slot.velocity || 90);
+            let nextChord = null;
+            for (let j = 1; j < sequencer.slots.length; j++) {
+              const nextSlot = sequencer.slots[(index + j) % sequencer.slots.length];
+              if (nextSlot && nextSlot.chord) {
+                nextChord = nextSlot.chord;
+                break;
+              }
+            }
+            audio.playChord(chordData, null, slot.beats * sequencer.getSecondsPerBeat(), slot.velocity || 90, {
+              beats: slot.beats,
+              secPerBeat: sequencer.getSecondsPerBeat(),
+              nextChord: nextChord
+            });
           }
         } catch (err) {
           console.error('Drop error:', err);
