@@ -81,7 +81,13 @@ class Sequencer {
   }
 
   getTotalBeats() {
-    return this.bars * this.beatsPerBar;
+    const slotBeats = this.slots.reduce((sum, s) => sum + (s.beats || 0), 0);
+    return slotBeats > 0 ? slotBeats : (this.beatsPerBar || 4) * 2;
+  }
+
+  getTotalBars() {
+    const totalBeats = this.getTotalBeats();
+    return totalBeats / (this.beatsPerBar || 4);
   }
 
   getSecondsPerBeat() {
@@ -235,6 +241,7 @@ class Sequencer {
       slot.endBeat = accumulatedBeat + slot.beats;
       accumulatedBeat += slot.beats;
     });
+    this.bars = Math.ceil(this.getTotalBars());
   }
 
   loadProgression(chordsList, beatsPerChord = 4) {
@@ -244,9 +251,6 @@ class Sequencer {
       beats: beatsPerChord,
       velocity: (ch && ch.velocity) ? ch.velocity : 90
     }));
-
-    const totalBeats = chordsList.length * beatsPerChord;
-    this.bars = Math.max(2, Math.ceil(totalBeats / this.beatsPerBar));
 
     this.rebalanceSlotsToBeats();
     if (this.onSlotsUpdate) this.onSlotsUpdate(this.slots);
@@ -258,8 +262,8 @@ class Sequencer {
 
     if (this.isPlaying) return;
     this.isPlaying = true;
-    this.currentBeatIndex = 0;
-    this.nextBeatTime = this.audio.getCurrentTime() + 0.05;
+    this.currentStep = 0; // In 1/16th beats (0.25 beat steps)
+    this.nextStepTime = this.audio.getCurrentTime() + 0.05;
 
     this.timerId = setInterval(() => this.scheduler(), this.lookaheadMs);
     if (this.onStateChange) this.onStateChange(this.getState());
@@ -271,7 +275,7 @@ class Sequencer {
       clearInterval(this.timerId);
       this.timerId = null;
     }
-    this.currentBeatIndex = 0;
+    this.currentStep = 0;
     if (this.onBeatChange) this.onBeatChange(0, this.getTotalBeats(), 0, 0);
     if (this.onSlotActive) this.onSlotActive(-1);
     if (this.onStateChange) this.onStateChange(this.getState());
@@ -288,42 +292,55 @@ class Sequencer {
   scheduler() {
     const totalBeats = this.getTotalBeats();
     const secPerBeat = this.getSecondsPerBeat();
+    const secPerStep = secPerBeat * 0.25; // 1 sixteenth note = 0.25 beat
+    const totalSteps = Math.max(1, Math.round(totalBeats / 0.25));
 
-    while (this.nextBeatTime < this.audio.getCurrentTime() + this.scheduleAheadTime) {
-      this.scheduleBeat(this.currentBeatIndex, this.nextBeatTime);
+    while (this.nextStepTime < this.audio.getCurrentTime() + this.scheduleAheadTime) {
+      this.scheduleStep(this.currentStep, this.nextStepTime);
 
-      this.nextBeatTime += secPerBeat;
-      this.currentBeatIndex++;
+      this.nextStepTime += secPerStep;
+      this.currentStep++;
 
-      if (this.currentBeatIndex >= totalBeats) {
+      if (this.currentStep >= totalSteps) {
         if (this.isLooping) {
-          this.currentBeatIndex = 0;
+          this.currentStep = 0;
         } else {
-          setTimeout(() => this.stop(), (this.nextBeatTime - this.audio.getCurrentTime()) * 1000);
+          setTimeout(() => this.stop(), (this.nextStepTime - this.audio.getCurrentTime()) * 1000);
           break;
         }
       }
     }
   }
 
-  scheduleBeat(beatIdx, beatTime) {
+  scheduleStep(stepIdx, stepTime) {
     const totalBeats = this.getTotalBeats();
-    const beatInBar = beatIdx % this.beatsPerBar;
-    const barIndex = Math.floor(beatIdx / this.beatsPerBar);
-    const isFirstBeatOfBar = (beatInBar === 0);
-
-    // 1. Metronome Click
-    if (this.isMetronomeOn) {
-      this.audio.playMetronomeClick(isFirstBeatOfBar, beatTime);
-    }
-
-    // 2. Play Chord if a slot starts on this beat
+    const currentBeat = stepIdx * 0.25;
     const secPerBeat = this.getSecondsPerBeat();
 
+    // 1. Metronome Click & LED Indicator on integer beats (every 4 sixteenths)
+    if (stepIdx % 4 === 0) {
+      const beatNumber = Math.round(currentBeat);
+      const beatInBar = beatNumber % this.beatsPerBar;
+      const isFirstBeatOfBar = (beatInBar === 0);
+
+      if (this.isMetronomeOn) {
+        this.audio.playMetronomeClick(isFirstBeatOfBar, stepTime);
+      }
+
+      const delayMs = Math.max(0, (stepTime - this.audio.getCurrentTime()) * 1000);
+      setTimeout(() => {
+        if (!this.isPlaying) return;
+        if (this.onBeatChange) {
+          this.onBeatChange(beatNumber, totalBeats, Math.floor(beatNumber / this.beatsPerBar), beatInBar);
+        }
+      }, delayMs);
+    }
+
+    // 2. Play Chord if a slot starts on this 1/16th step
     for (let i = 0; i < this.slots.length; i++) {
       const slot = this.slots[i];
       const slotStart = slot.startBeat % totalBeats;
-      if (Math.abs(slotStart - beatIdx) < 0.15) {
+      if (Math.abs(slotStart - currentBeat) < 0.12) {
         if (slot.chord && (slot.chord.midiNotes || slot.chord.rootName)) {
           const chordDuration = slot.beats * secPerBeat * 0.95;
           const vel = slot.velocity || slot.chord.velocity || 90;
@@ -338,7 +355,7 @@ class Sequencer {
             }
           }
 
-          this.audio.playChord(slot.chord, beatTime, chordDuration, vel, {
+          this.audio.playChord(slot.chord, stepTime, chordDuration, vel, {
             beats: slot.beats,
             secPerBeat: secPerBeat,
             nextChord: nextChord
@@ -348,27 +365,24 @@ class Sequencer {
       }
     }
 
-    // Find currently active slot for UI highlight
+    // 3. Find currently active slot for UI highlight
     let currentHighlightedSlot = -1;
     for (let i = 0; i < this.slots.length; i++) {
       const slot = this.slots[i];
       const slotStart = slot.startBeat % totalBeats;
-      if (slotStart <= beatIdx && (beatIdx < slot.startBeat + slot.beats)) {
+      if (slotStart <= currentBeat + 0.05 && (currentBeat < slot.startBeat + slot.beats - 0.05)) {
         currentHighlightedSlot = i;
         break;
       }
     }
 
-    const delayMs = Math.max(0, (beatTime - this.audio.getCurrentTime()) * 1000);
+    const highlightDelayMs = Math.max(0, (stepTime - this.audio.getCurrentTime()) * 1000);
     setTimeout(() => {
       if (!this.isPlaying) return;
-      if (this.onBeatChange) {
-        this.onBeatChange(beatIdx, totalBeats, barIndex, beatInBar);
-      }
       if (this.onSlotActive) {
         this.onSlotActive(currentHighlightedSlot);
       }
-    }, delayMs);
+    }, highlightDelayMs);
   }
 
   recordChord(chord) {

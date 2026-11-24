@@ -106,12 +106,6 @@
             <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
             <span>Loop</span>
           </button>
-
-          <!-- Record Mode Toggle -->
-          <button id="record-btn" class="flex items-center space-x-1 px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-400 font-medium text-xs hover:border-rose-600 transition cursor-pointer" title="Record Chords on Click">
-            <span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>
-            <span>Record</span>
-          </button>
         </div>
 
         <!-- Center: Tap Tempo & BPM Slider -->
@@ -153,13 +147,11 @@
             <div class="beat-led" data-beat="3"></div>
           </div>
 
-          <!-- Measure config (2 Bars, 4 Bars, 8 Bars) -->
-          <div class="flex items-center space-x-1">
-            <select id="bars-select" class="bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs px-2 py-1 focus:outline-none">
-              <option value="2" selected>2 Bars</option>
-              <option value="4">4 Bars</option>
-              <option value="8">8 Bars</option>
-            </select>
+          <!-- Dynamic Total Progression Loop Length Display -->
+          <div class="flex items-center space-x-1.5 bg-slate-900/90 border border-indigo-700/60 rounded-xl px-2.5 py-1 text-xs select-none shadow-sm" title="Total Progression Loop Length (Sum of all slot durations)">
+            <span class="text-indigo-400 font-semibold">📏 Total:</span>
+            <span id="total-bars-display" class="font-bold text-white font-mono">4.0 Bars</span>
+            <span id="total-beats-display" class="text-[11px] text-slate-400 font-mono">(16 beats)</span>
           </div>
 
           <!-- Time signature (4/4, 3/4) -->
@@ -181,7 +173,8 @@
           <span class="text-sm font-bold text-white flex items-center gap-1.5">
             <span>🎼</span> Progression Track
           </span>
-          <span class="text-[11px] text-slate-400">(Drag & drop chords onto slots, edit 1/16th fractions & velocity)</span>
+          <span id="track-bars-badge" class="px-2 py-0.5 rounded-md bg-indigo-950/80 border border-indigo-700/60 text-indigo-300 font-bold font-mono text-xs">4.0 Bars (16 beats)</span>
+          <span class="text-[11px] text-slate-400 hidden md:inline">(Drag & drop chords onto slots, edit 1/16th fractions & velocity)</span>
         </div>
 
         <!-- Presets, MIDI Editor and Export Actions -->
@@ -306,7 +299,6 @@
         <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">1 - 7</kbd> Play Degree Chords</div>
         <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">T</kbd> Tap Tempo</div>
         <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">L</kbd> Loop</div>
-        <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">R</kbd> Record</div>
         <div><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono">M</kbd> Metronome</div>
       </div>
     </section>
@@ -322,12 +314,12 @@
   </footer>
 
   <!-- App Scripts with Cache Busting -->
-  <script src="js/theory.js?v=2.4"></script>
-  <script src="js/audio.js?v=2.4"></script>
-  <script src="js/sequencer.js?v=2.4"></script>
-  <script src="js/pianoroll.js?v=2.4"></script>
-  <script src="js/slotModal.js?v=2.4"></script>
-  <script src="js/midi.js?v=2.4"></script>
-  <script src="js/app.js?v=2.4"></script>
+  <script src="js/theory.js?v=2.5"></script>
+  <script src="js/audio.js?v=2.5"></script>
+  <script src="js/sequencer.js?v=2.5"></script>
+  <script src="js/pianoroll.js?v=2.5"></script>
+  <script src="js/slotModal.js?v=2.5"></script>
+  <script src="js/midi.js?v=2.5"></script>
+  <script src="js/app.js?v=2.5"></script>
 </body>
 </html>

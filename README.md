@@ -66,8 +66,8 @@ Features 16 standard General MIDI instruments synthesized via Web Audio API with
 - **Synth Pad**: `089. Warm Synth Pad`
 
 ### 6. ⏱️ Sequencer, Looper & Tap Tempo
-- Configurable measures (2 Bars, 4 Bars, 8 Bars) and time signatures (4/4, 3/4 Waltz).
-- **Zero-Drift Web Audio Clock**: Jitter-free lookahead scheduling for continuous looping.
+- **Dynamic Progression Looper**: Automatically calculates and loops the exact total duration of your progression track based on all chord slots in real-time. Live indicators show the combined length (e.g. `4.0 Bars (16 beats)`, `2.5 Bars`, etc.).
+- **Zero-Drift Web Audio Clock**: Jitter-free lookahead scheduling with sub-beat 1/16th precision for continuous looping.
 - **Metronome**: Distinct woodblock/rimshot click with high accent on beat 1.
 - **4-LED Flashing Beat Row**: Synchronized visual tempo indicator.
 - **Tap Tempo**: Tap rhythmically on the button to instantly calculate and set your song's BPM.
@@ -83,7 +83,6 @@ Features 16 standard General MIDI instruments synthesized via Web Audio API with
 | **Keys 1 - 7** | Trigger Scale Degree Chords 1 through 7 |
 | **T** | Tap Tempo |
 | **L** | Toggle Loop |
-| **R** | Toggle Record Mode |
 | **M** | Toggle Metronome |
 
 ---

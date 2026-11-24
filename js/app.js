@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const playBtn = document.getElementById('play-btn');
   const stopBtn = document.getElementById('stop-btn');
   const loopBtn = document.getElementById('loop-btn');
-  const recordBtn = document.getElementById('record-btn');
   const metronomeToggle = document.getElementById('metronome-toggle');
   const tapBtn = document.getElementById('tap-tempo-btn');
   const tapBpmDisplay = document.getElementById('tap-bpm-display');
@@ -40,8 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const bpmInput = document.getElementById('bpm-input');
   const bpmMinusBtn = document.getElementById('bpm-minus');
   const bpmPlusBtn = document.getElementById('bpm-plus');
-  const barsSelect = document.getElementById('bars-select');
   const timeSigSelect = document.getElementById('time-sig-select');
+  const totalBarsDisplay = document.getElementById('total-bars-display');
+  const totalBeatsDisplay = document.getElementById('total-beats-display');
+  const trackBarsBadge = document.getElementById('track-bars-badge');
 
   // Actions & Presets
   const presetsSelect = document.getElementById('presets-select');
@@ -521,9 +522,30 @@ document.addEventListener('DOMContentLoaded', () => {
     timelineSlots.appendChild(addBtn);
   }
 
-  // 6. Sequencer Callbacks & UI Sync
+  // 6. Update Total Progression Length (Sum of slot lengths in bars and beats)
+  function updateTotalProgressionLength() {
+    const totalBeats = sequencer.getTotalBeats();
+    const beatsPerBar = sequencer.beatsPerBar || 4;
+    const totalBars = totalBeats / beatsPerBar;
+
+    let formattedBars;
+    if (Number.isInteger(totalBars)) {
+      formattedBars = `${totalBars}.0 ${totalBars === 1 ? 'Bar' : 'Bars'}`;
+    } else {
+      formattedBars = `${parseFloat(totalBars.toFixed(3))} Bars`;
+    }
+
+    const beatsStr = `${totalBeats % 1 === 0 ? totalBeats : totalBeats.toFixed(2)} beats`;
+
+    if (totalBarsDisplay) totalBarsDisplay.textContent = formattedBars;
+    if (totalBeatsDisplay) totalBeatsDisplay.textContent = `(${beatsStr})`;
+    if (trackBarsBadge) trackBarsBadge.textContent = `${formattedBars} (${beatsStr})`;
+  }
+
+  // 7. Sequencer Callbacks & UI Sync
   sequencer.onSlotsUpdate = (slots) => {
     renderTimelineSlots(slots);
+    updateTotalProgressionLength();
     if (pianoRoll.isOpen) {
       pianoRoll.syncFromSequencer();
       pianoRoll.resizeAndDraw();
@@ -581,14 +603,6 @@ document.addEventListener('DOMContentLoaded', () => {
       loopBtn.classList.add('text-slate-400');
     }
 
-    if (st.isRecording) {
-      recordBtn.classList.add('bg-rose-600', 'text-white', 'animate-pulse');
-      recordBtn.classList.remove('text-slate-400');
-    } else {
-      recordBtn.classList.remove('bg-rose-600', 'text-white', 'animate-pulse');
-      recordBtn.classList.add('text-slate-400');
-    }
-
     bpmSlider.value = st.bpm;
     bpmInput.value = st.bpm;
 
@@ -598,15 +612,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // 7. UI Event Listeners
+  // 8. UI Event Listeners
   playBtn.addEventListener('click', () => sequencer.togglePlay());
   stopBtn.addEventListener('click', () => sequencer.stop());
   loopBtn.addEventListener('click', () => {
     sequencer.isLooping = !sequencer.isLooping;
-    sequencer.onStateChange(sequencer.getState());
-  });
-  recordBtn.addEventListener('click', () => {
-    sequencer.isRecording = !sequencer.isRecording;
     sequencer.onStateChange(sequencer.getState());
   });
   metronomeToggle.addEventListener('change', (e) => {
@@ -626,8 +636,10 @@ document.addEventListener('DOMContentLoaded', () => {
   bpmInput.addEventListener('change', (e) => sequencer.setBpm(e.target.value));
   bpmMinusBtn.addEventListener('click', () => sequencer.setBpm(sequencer.bpm - 1));
   bpmPlusBtn.addEventListener('click', () => sequencer.setBpm(sequencer.bpm + 1));
-  barsSelect.addEventListener('change', (e) => sequencer.setBars(e.target.value));
-  timeSigSelect.addEventListener('change', (e) => sequencer.setBeatsPerBar(e.target.value));
+  timeSigSelect.addEventListener('change', (e) => {
+    sequencer.setBeatsPerBar(e.target.value);
+    updateTotalProgressionLength();
+  });
 
   scaleModeSelect.addEventListener('change', (e) => {
     state.selectedMode = e.target.value;
@@ -725,23 +737,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const pad = pads[num - 1];
         audio.init();
         playChordWithPadAnimation(chord, pad);
-        if (sequencer.isRecording) {
-          sequencer.recordChord(chord);
-        }
-      }
-      return;
-    }
-
     if (e.key === 't' || e.key === 'T') {
       tapBtn.click();
       return;
     }
     if (e.key === 'l' || e.key === 'L') {
       loopBtn.click();
-      return;
-    }
-    if (e.key === 'r' || e.key === 'R') {
-      recordBtn.click();
       return;
     }
     if (e.key === 'm' || e.key === 'M') {
@@ -784,4 +785,5 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
   sequencer.rebalanceSlotsToBeats();
   renderTimelineSlots(sequencer.slots);
+  updateTotalProgressionLength();
 });
