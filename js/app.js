@@ -288,6 +288,12 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'slow_soul': return '🎶 Soul';
       case 'bossa_funk': return '⚡ Bossa';
       case 'ambient_lofi': return '🌊 Lofi';
+      case 'travis_picking': return '🤠 Travis';
+      case 'classical_alberti': return '🎼 Alberti';
+      case 'waltz_34': return '💃 Waltz';
+      case 'jazz_comping': return '🎷 Jazz';
+      case 'reggae_skank': return '🌴 Reggae';
+      case 'cinematic_swell': return '🎬 Pulse';
       case 'block': return '⏹️ Block';
       default: return '🎸 Ballad';
     }

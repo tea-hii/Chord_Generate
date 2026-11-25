@@ -52,7 +52,7 @@ Built entirely with standard **HTML5 and Web Audio API**, requiring zero backend
 ### 5. 🎸 Per-Chord Picking & Arpeggio Styles (with "Set All" Master Control)
 - **Individual Per-Chord Customization**: Each chord in your progression can have its own distinct accompaniment style, allowing dynamic contrast (e.g., ballad fingerpicking in the verse, rapid flamenco roll into the chorus, walking bass in the bridge).
 - **Master "⚡ Set All" Control**: Easily set every chord slot in the entire progression to a chosen style with a single click, then fine-tune individual chords as desired.
-- **9 Rich Accompaniment Styles**:
+- **15 Rich Accompaniment Styles**:
   1. **Fingerpicking (Ballad Pluck)**: Emulates an acoustic guitar ballad picking pattern. Deep bass note on beat 1, rolling 8th-note string plucks (Bass -> 3rd -> 5th -> High Melody -> Alternating Bass -> 3rd -> High Melody -> 5th) that breathe naturally.
   2. **Acoustic Strum (Groove)**: Authentic rhythmic acoustic guitar strumming with humanized micro-staggers (~24ms delay between strings) and musical down/up strum velocity contours.
   3. **Walking Bass + Comping (Passing Notes)**: Punchy root bass note on beat 1, off-beat syncopated chord comping, and calculated **single passing notes (leading tones)** right before the next chord transition.
@@ -61,7 +61,13 @@ Built entirely with standard **HTML5 and Web Audio API**, requiring zero backend
   6. **Slow Soul / RnB (Bass + Offbeat Pinch)**: Deep warm bass anchor on 1, followed by syncopated pinch chords on the offbeats and high melodic fills.
   7. **Bossa Nova / Funk (Pinch & Staccato)**: Crisp Brazilian syncopated thumb-bass & finger-pinched staccato chord hits.
   8. **Ambient Lofi (Ethereal Harp Arpeggio)**: Lush, high-sustain cascading arpeggio with gentle attack for dreamy, chill lofi aesthetics.
-  9. **Block Chord**: Direct simultaneous trigger for checking raw harmony and voicings.
+  9. **Travis Picking (Country / Folk)**: Alternating thumb bass (Root -> 5th) woven with syncopated treble melody plucks.
+  10. **Alberti Bass (Classical Piano)**: Classic Mozart/Beethoven broken chord pattern (Low -> High -> Mid -> High) in 16th-note motion.
+  11. **3/4 Waltz (Oom-Pah-Pah)**: Traditional waltz rhythm with deep bass on beat 1 and light upper chord plucks on beats 2 and 3.
+  12. **Jazz Swing Comping (Charleston)**: Syncopated jazz chord voicings with swung Charleston rhythm and soft turnaround pickups.
+  13. **Reggae / Ska Skank**: Sub-bass on beats 1 and 3 with crisp staccato chord chops strictly on the off-beats.
+  14. **Cinematic Pulse (8th Ostinato)**: Driving 8th-note bass pulse with rising crescendo upper voices for film-score builds.
+  15. **Block Chord**: Direct simultaneous trigger for checking raw harmony and voicings.
 - **6-String Open Voicing Engine**: Expands traditional closed 3-note triads into wide, studio-grade 6-string open voicings spanning 2.5 octaves (e.g., C2 - G2 - C3 - E3 - G3 - C4), delivering immense warmth and emotional resonance.
 
 ### 6. 🎹 General MIDI (GM) Standard Instrument Soundbank

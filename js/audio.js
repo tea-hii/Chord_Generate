@@ -953,6 +953,125 @@ class AudioEngine {
         break;
       }
 
+      case 'travis_picking': {
+        // Country / Folk Travis Picking: alternating thumb bass (Root -> 5th) + syncopated top melody plucks
+        const step = secPerBeat * 0.5; // 8th notes
+        const maxSteps = Math.max(2, Math.floor(duration / step));
+        // Pattern: [Thumb Root, Treble 5th, Thumb AltBass, Treble 3rd, Thumb Root, Treble High, Thumb AltBass, Treble 3rd]
+        const patternIndices = [0, 4, 1, 3, 0, 5, 1, 3];
+        const velMultipliers = [1.15, 0.82, 1.05, 0.88, 1.12, 0.94, 1.02, 0.85];
+        for (let i = 0; i < maxSteps; i++) {
+          const noteTime = t + i * step;
+          if (noteTime >= t + duration - 0.02) break;
+          const pIdx = i % patternIndices.length;
+          const midi = strings[patternIndices[pIdx]] || strings[0];
+          const isThumb = (i % 2) === 0;
+          const d = Math.min(isThumb ? step * 2.2 : step * 1.8, (t + duration) - noteTime);
+          const v = Math.round(Math.min(127, Math.max(25, baseVel * velMultipliers[pIdx])));
+          this.playNote(midi, noteTime, d, v);
+        }
+        break;
+      }
+
+      case 'classical_alberti': {
+        // Classical Piano Alberti Bass (Low -> High -> Mid -> High) in 8th/16th subdivision
+        const step = secPerBeat * 0.25; // 16th-note classical ripple
+        const maxSteps = Math.max(4, Math.floor(duration / step));
+        const patternIndices = [0, 4, 2, 4, 1, 5, 3, 5];
+        const velMultipliers = [1.1, 0.78, 0.85, 0.78, 1.0, 0.82, 0.88, 0.82];
+        for (let i = 0; i < maxSteps; i++) {
+          const noteTime = t + i * step;
+          if (noteTime >= t + duration - 0.02) break;
+          const pIdx = i % patternIndices.length;
+          const midi = strings[patternIndices[pIdx]] || strings[0];
+          const v = Math.round(Math.min(127, Math.max(25, baseVel * velMultipliers[pIdx])));
+          this.playNote(midi, noteTime, step * 1.9, v);
+        }
+        break;
+      }
+
+      case 'waltz_34': {
+        // 3/4 Waltz (Oom-Pah-Pah): Deep Bass on beat 1, light upper chord plucks on beats 2 & 3
+        const numBeats = Math.max(1, Math.round(duration / secPerBeat));
+        for (let b = 0; b < numBeats; b++) {
+          const noteTime = t + b * secPerBeat;
+          if (noteTime >= t + duration - 0.02) break;
+          const beatInWaltz = b % 3;
+          if (beatInWaltz === 0) {
+            this.playNote(strings[0], noteTime, secPerBeat * 1.4, Math.round(Math.min(127, baseVel * 1.15)));
+          } else {
+            const velScale = beatInWaltz === 1 ? 0.82 : 0.74;
+            [strings[2], strings[3], strings[4]].forEach(m => {
+              this.playNote(m, noteTime, secPerBeat * 0.75, Math.round(baseVel * velScale));
+            });
+          }
+        }
+        break;
+      }
+
+      case 'jazz_comping': {
+        // Jazz Swing / Charleston Comping: Root + Chord on 1, syncopated push on "and of 2", soft turnaround on 4
+        this.playNote(strings[0], t, Math.min(duration, secPerBeat * 1.5), Math.round(Math.min(127, baseVel * 1.1)));
+        [strings[2], strings[3], strings[4], strings[5]].forEach((m, idx) => {
+          this.playNote(m, t + idx * 0.01, secPerBeat * 0.85, Math.round(baseVel * 0.86));
+        });
+        // Charleston syncopation on beat 2.66 (swung "and of 2")
+        if (duration >= secPerBeat * 2.2) {
+          const swingOffset = secPerBeat * 1.66;
+          [strings[2], strings[3], strings[4], strings[5]].forEach((m, idx) => {
+            this.playNote(m, t + swingOffset + idx * 0.01, secPerBeat * 0.55, Math.round(baseVel * 0.78));
+          });
+        }
+        // Soft comping pickup on beat 4
+        if (duration >= secPerBeat * 3.6) {
+          const pickupOffset = secPerBeat * 3.33;
+          [strings[3], strings[4]].forEach(m => {
+            this.playNote(m, t + pickupOffset, secPerBeat * 0.45, Math.round(baseVel * 0.7));
+          });
+        }
+        break;
+      }
+
+      case 'reggae_skank': {
+        // Reggae / Ska: Deep sub-bass on beats 1 & 3, crisp staccato chord skank strictly on off-beats
+        const numBeats = Math.max(1, Math.floor(duration / secPerBeat));
+        for (let b = 0; b < numBeats; b++) {
+          const beatTime = t + b * secPerBeat;
+          if (b % 2 === 0 && beatTime < t + duration - 0.02) {
+            this.playNote(strings[0], beatTime, secPerBeat * 0.9, Math.round(Math.min(127, baseVel * 1.15)));
+          }
+          const offBeatTime = beatTime + secPerBeat * 0.5;
+          if (offBeatTime < t + duration - 0.02) {
+            [strings[2], strings[3], strings[4], strings[5]].forEach(m => {
+              this.playNote(m, offBeatTime, secPerBeat * 0.22, Math.round(baseVel * 0.9));
+            });
+          }
+        }
+        break;
+      }
+
+      case 'cinematic_swell': {
+        // Cinematic 8th-note driving pulse on Root/5th with soaring crescendo top voices
+        const step = secPerBeat * 0.5;
+        const maxSteps = Math.max(2, Math.floor(duration / step));
+        for (let i = 0; i < maxSteps; i++) {
+          const noteTime = t + i * step;
+          if (noteTime >= t + duration - 0.02) break;
+          const progress = i / Math.max(1, maxSteps - 1);
+          const pulseMidi = (i % 2 === 0) ? strings[0] : strings[1];
+          const pulseVel = Math.round(Math.min(127, baseVel * (0.75 + progress * 0.4)));
+          this.playNote(pulseMidi, noteTime, step * 1.4, pulseVel);
+
+          // Add soaring upper voices on every 2nd step with rising intensity
+          if (i % 2 === 0) {
+            const topMidi = strings[3 + (Math.floor(i / 2) % 3)] || strings[5];
+            const topVel = Math.round(Math.min(127, baseVel * (0.65 + progress * 0.45)));
+            this.playNote(topMidi, noteTime, step * 2.5, topVel);
+          }
+        }
+        break;
+      }
+
       case 'block':
       default: {
         // Classic simultaneous block chord

@@ -105,15 +105,21 @@ class SlotModal {
             <p class="text-[11px] text-slate-400">Choose how this individual chord is plucked, strummed, or arpeggiated.</p>
             <select id="modal-style-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg text-slate-200 text-xs px-2.5 py-1.5 font-medium focus:outline-none cursor-pointer">
               <option value="inherit">Default (Follow Global Song Style)</option>
-              <option value="fingerstyle">🎸 Fingerpicking Ballad (Tỉa Ballad 4/4)</option>
-              <option value="strum">🎸 Acoustic Strum (Quạt Chả Groove)</option>
-              <option value="walking_bass">🚶 Walking Bass + Comping (Bè Bass Dẫn + Đệm)</option>
-              <option value="piano_arpeggio">🎹 Piano Ballad Arpeggio (Rải Phím Piano)</option>
-              <option value="flamenco">✨ Spanish Flamenco Roll (Tỉa Nhanh Flamenco)</option>
-              <option value="slow_soul">🎶 Slow Soul / RnB Pluck (Rải Soul Nhẹ Nhàng)</option>
-              <option value="bossa_funk">⚡ Bossa Nova / Funk Pinch (Gảy Ngắt Bossa)</option>
-              <option value="ambient_lofi">🌊 Ambient Lofi Arpeggio (Rải Huyền Ảo Lofi)</option>
-              <option value="block">⏹️ Block Chord (Hợp Âm Khối Đồng Thời)</option>
+              <option value="fingerstyle">🎸 Fingerpicking Ballad (4/4 Pluck)</option>
+              <option value="strum">🎸 Acoustic Strum (Down/Up Groove)</option>
+              <option value="walking_bass">🚶 Walking Bass + Comping</option>
+              <option value="piano_arpeggio">🎹 Piano Ballad Arpeggio</option>
+              <option value="flamenco">✨ Spanish Flamenco Roll (16th Tremolo)</option>
+              <option value="slow_soul">🎶 Slow Soul / RnB Pluck</option>
+              <option value="bossa_funk">⚡ Bossa Nova / Funk Pinch</option>
+              <option value="ambient_lofi">🌊 Ambient Lofi Harp Arpeggio</option>
+              <option value="travis_picking">🤠 Travis Picking (Country / Folk)</option>
+              <option value="classical_alberti">🎼 Alberti Bass (Classical Piano)</option>
+              <option value="waltz_34">💃 3/4 Waltz (Oom-Pah-Pah)</option>
+              <option value="jazz_comping">🎷 Jazz Swing Comping (Charleston)</option>
+              <option value="reggae_skank">🌴 Reggae / Ska Off-Beat Skank</option>
+              <option value="cinematic_swell">🎬 Cinematic Pulse (8th Ostinato)</option>
+              <option value="block">⏹️ Block Chord (Simultaneous)</option>
             </select>
           </div>
 
