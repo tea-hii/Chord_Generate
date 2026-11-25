@@ -789,6 +789,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const pad = pads[num - 1];
         audio.init();
         playChordWithPadAnimation(chord, pad);
+      }
+      return;
+    }
+
     if (e.key === 't' || e.key === 'T') {
       tapBtn.click();
       return;
