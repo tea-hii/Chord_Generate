@@ -320,6 +320,35 @@
         <!-- Rendered dynamically via app.js -->
       </div>
 
+      <!-- Context-Sensitive Chord Variations Drawer (Expands when clicking a Diatonic Chord) -->
+      <div id="chord-variations-drawer" class="hidden rounded-xl border border-indigo-700/60 bg-slate-950/90 p-3 flex flex-col gap-2.5 shadow-inner transition-all">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
+              <span>🎛️</span>
+              <span id="variations-drawer-title">Chord Variations</span>
+            </span>
+            <span class="text-[10px] text-slate-400 hidden sm:inline">Click to preview, drag onto track, or click + Add</span>
+          </div>
+          <button id="close-variations-btn" type="button" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-[11px] font-semibold transition cursor-pointer">
+            ✕ Close
+          </button>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <!-- Extensions & Sus -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-sky-400 w-24 flex-shrink-0">Ext & Sus:</span>
+            <div id="variations-ext-container" class="flex flex-wrap items-center gap-1.5 flex-1"></div>
+          </div>
+          <!-- Slash Inversions & Secondary Dominants (V/x, ii/V) -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-purple-400 w-24 flex-shrink-0">Slash & V/x:</span>
+            <div id="variations-adv-container" class="flex flex-wrap items-center gap-1.5 flex-1"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- Compact Borrowed Chords (Modal Interchange) -->
       <div id="borrowed-section" class="pt-2 border-t border-slate-800/80">
         <div class="flex items-center justify-between mb-1.5">
@@ -358,12 +387,12 @@
   </footer>
 
   <!-- App Scripts with Cache Busting -->
-  <script src="js/theory.js?v=3.2"></script>
-  <script src="js/audio.js?v=3.2"></script>
-  <script src="js/sequencer.js?v=3.2"></script>
-  <script src="js/pianoroll.js?v=3.2"></script>
-  <script src="js/slotModal.js?v=3.2"></script>
-  <script src="js/midi.js?v=3.2"></script>
-  <script src="js/app.js?v=3.2"></script>
+  <script src="js/theory.js?v=3.3"></script>
+  <script src="js/audio.js?v=3.3"></script>
+  <script src="js/sequencer.js?v=3.3"></script>
+  <script src="js/pianoroll.js?v=3.3"></script>
+  <script src="js/slotModal.js?v=3.3"></script>
+  <script src="js/midi.js?v=3.3"></script>
+  <script src="js/app.js?v=3.3"></script>
 </body>
 </html>

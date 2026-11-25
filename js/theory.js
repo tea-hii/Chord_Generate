@@ -88,8 +88,14 @@ const CHORD_INTERVALS = {
   'm(maj7)': [0, 3, 7, 11],
   'maj7#5': [0, 4, 8, 11],
   add9: [0, 4, 7, 14],
+  madd9: [0, 3, 7, 14],
   m9: [0, 3, 7, 10, 14],
-  maj9: [0, 4, 7, 11, 14]
+  maj9: [0, 4, 7, 11, 14],
+  '9': [0, 4, 7, 10, 14],
+  '6': [0, 4, 7, 9],
+  m6: [0, 3, 7, 9],
+  '7sus4': [0, 5, 7, 10],
+  m11: [0, 3, 7, 10, 14, 17]
 };
 
 // Helpful chord symbols formatting
@@ -108,8 +114,14 @@ const CHORD_DISPLAY_SUFFIX = {
   'm(maj7)': 'm(maj7)',
   'maj7#5': 'maj7#5',
   add9: 'add9',
+  madd9: 'm(add9)',
   m9: 'm9',
-  maj9: 'maj9'
+  maj9: 'maj9',
+  '9': '9',
+  '6': '6',
+  m6: 'm6',
+  '7sus4': '7sus4',
+  m11: 'm11'
 };
 
 // Pre-defined popular chord progressions for instant songwriting inspiration
@@ -330,6 +342,131 @@ function getScaleChords(rootName, modeKey = 'major', use7ths = false) {
   return { chords, borrowed };
 }
 
+// Build a custom chord variation (extended, suspended, slash, or secondary dominant)
+function buildCustomChord(chordRootMidi, type, degree, functionName, useFlat = false, slashBassMidi = null) {
+  const rootName = midiToNoteName(chordRootMidi, useFlat);
+  const intervals = CHORD_INTERVALS[type] || CHORD_INTERVALS.maj;
+  const suffix = CHORD_DISPLAY_SUFFIX[type] !== undefined ? CHORD_DISPLAY_SUFFIX[type] : '';
+  let fullName = rootName + suffix;
+
+  const bassPc = slashBassMidi !== null ? (slashBassMidi % 12 + 12) % 12 : chordRootMidi;
+  if (slashBassMidi !== null && bassPc !== chordRootMidi) {
+    fullName += `/${midiToNoteName(bassPc, useFlat)}`;
+  }
+
+  const bassMidi = 36 + bassPc;
+  const chordMidiNotes = [bassMidi];
+  const baseOctave = 48;
+  for (const semitone of intervals) {
+    chordMidiNotes.push(baseOctave + chordRootMidi + semitone);
+  }
+
+  return {
+    degree,
+    rootName,
+    type,
+    fullName,
+    functionName,
+    midiNotes: chordMidiNotes,
+    intervals,
+    isVariation: true
+  };
+}
+
+// Generate context-sensitive extended, suspended, slash & secondary dominant variations for any selected chord
+function getChordVariations(baseChord, scaleRootName, modeKey = 'major') {
+  if (!baseChord) return { extensions: [], advanced: [] };
+
+  const scaleRootMidi = noteNameToMidi(scaleRootName);
+  const chordRootMidi = noteNameToMidi(baseChord.rootName);
+  const useFlat = prefersFlats(scaleRootName, modeKey.includes('minor') || modeKey.includes('penta'));
+  const baseDeg = baseChord.degree || 'I';
+  const baseType = baseChord.type || 'maj';
+
+  const extensions = [];
+  const advanced = [];
+
+  const isMinor = ['min', 'm7', 'm(maj7)'].includes(baseType);
+  const isDim = ['dim', 'm7b5', 'dim7'].includes(baseType);
+  const isDominantDegree = baseDeg === 'V' || baseDeg === 'V7' || baseType === '7';
+
+  if (isDim) {
+    ['m7b5', 'dim7', 'sus4'].forEach(t => {
+      extensions.push(buildCustomChord(chordRootMidi, t, `${baseDeg}(${t})`, `${t} color`, useFlat));
+    });
+  } else if (isMinor) {
+    ['m7', 'm9', 'madd9', 'sus2', 'sus4', 'm6', 'm11'].forEach(t => {
+      const label = t === 'madd9' ? `${baseDeg}(add9)` : `${baseDeg}${t.replace('m', '')}`;
+      extensions.push(buildCustomChord(chordRootMidi, t, label, `Extended/Sus ${t}`, useFlat));
+    });
+  } else if (isDominantDegree) {
+    ['7', '9', '7sus4', 'sus4', 'sus2', 'add9', '6'].forEach(t => {
+      extensions.push(buildCustomChord(chordRootMidi, t, `${baseDeg}${t}`, `Dominant ${t} color`, useFlat));
+    });
+  } else {
+    ['maj7', 'maj9', 'add9', 'sus2', 'sus4', '6', '7'].forEach(t => {
+      extensions.push(buildCustomChord(chordRootMidi, t, `${baseDeg}${t}`, `Extended/Sus ${t}`, useFlat));
+    });
+  }
+
+  // Advanced: 1st Inversion (Chord / 3rd)
+  const thirdInterval = isMinor || isDim ? 3 : 4;
+  const thirdMidi = (chordRootMidi + thirdInterval) % 12;
+  advanced.push(buildCustomChord(
+    chordRootMidi,
+    baseType,
+    `${baseDeg}/3`,
+    '1st Inversion (Smooth Bassline)',
+    useFlat,
+    thirdMidi
+  ));
+
+  // Hybrid over V Bass (e.g. ii/V = Dm/G, IV/V = F/G)
+  const scaleFifthMidi = (scaleRootMidi + 7) % 12;
+  if (chordRootMidi !== scaleFifthMidi) {
+    const bassVName = midiToNoteName(scaleFifthMidi, useFlat);
+    advanced.push(buildCustomChord(
+      chordRootMidi,
+      isMinor ? 'm7' : baseType,
+      `${baseDeg}/V`,
+      `Hybrid ${baseDeg} over V (${bassVName} pedal)`,
+      useFlat,
+      scaleFifthMidi
+    ));
+  }
+
+  // Secondary Dominant leading into this chord (V/x)
+  const secDomMidi = (chordRootMidi + 7) % 12;
+  advanced.push(buildCustomChord(
+    secDomMidi,
+    '7',
+    `V/${baseDeg}`,
+    `Secondary Dominant leading to ${baseChord.fullName}`,
+    useFlat
+  ));
+
+  // Secondary Dominant 9th (V9/x)
+  advanced.push(buildCustomChord(
+    secDomMidi,
+    '9',
+    `V9/${baseDeg}`,
+    `Lush Secondary Dominant 9th leading to ${baseChord.fullName}`,
+    useFlat
+  ));
+
+  // Tritone Substitution leading into this chord (bII7/x)
+  const tritoneSubMidi = (chordRootMidi + 1) % 12;
+  advanced.push(buildCustomChord(
+    tritoneSubMidi,
+    '7',
+    `bII7/${baseDeg}`,
+    `Jazz Tritone Sub leading down by half-step to ${baseChord.fullName}`,
+    true
+  ));
+
+  return { extensions, advanced };
+}
+
 // Convert MIDI number (e.g. 60 = C4) to frequency (Hz)
 function midiToFreq(midi) {
   return 440 * Math.pow(2, (midi - 69) / 12);
@@ -356,6 +493,8 @@ if (typeof module !== 'undefined' && module.exports) {
     CHORD_DISPLAY_SUFFIX,
     PROGRESSION_TEMPLATES,
     getScaleChords,
+    getChordVariations,
+    buildCustomChord,
     midiToFreq,
     noteNameToMidi,
     midiToNoteName,

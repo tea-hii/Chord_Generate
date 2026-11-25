@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedMode: 'major',
     use7ths: false,
     currentScaleChords: [],
-    borrowedChords: []
+    borrowedChords: [],
+    activeVariationIndex: null
   };
 
   // Instantiate core modules
@@ -25,6 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const chordsToggle7th = document.getElementById('toggle-7th');
   const currentKeyTitle = document.getElementById('current-key-title');
   const chordPadsContainer = document.getElementById('chord-pads-container');
+  const chordVariationsDrawer = document.getElementById('chord-variations-drawer');
+  const variationsDrawerTitle = document.getElementById('variations-drawer-title');
+  const variationsExtContainer = document.getElementById('variations-ext-container');
+  const variationsAdvContainer = document.getElementById('variations-adv-container');
+  const closeVariationsBtn = document.getElementById('close-variations-btn');
   const borrowedPadsContainer = document.getElementById('borrowed-pads-container');
   const timelineSlots = document.getElementById('timeline-slots');
 
@@ -154,8 +160,89 @@ document.addEventListener('DOMContentLoaded', () => {
     const modeName = SCALE_MODES[state.selectedMode] ? SCALE_MODES[state.selectedMode].name : 'Major';
     currentKeyTitle.textContent = `${state.selectedRoot} ${modeName}`;
 
+    state.activeVariationIndex = null;
+    if (chordVariationsDrawer) chordVariationsDrawer.classList.add('hidden');
+
     renderChordPads();
     renderBorrowedPads();
+  }
+
+  function createVariationChip(chord, isAdv = false) {
+    const chip = document.createElement('div');
+    const colorCls = isAdv
+      ? 'border-purple-700/60 bg-purple-950/40 hover:bg-purple-900/50 text-purple-100'
+      : 'border-sky-700/60 bg-sky-950/40 hover:bg-sky-900/50 text-sky-100';
+    chip.className = `chord-pad flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${colorCls} text-xs cursor-grab transition select-none`;
+    chip.setAttribute('draggable', 'true');
+    chip.title = `${chord.functionName || chord.fullName} — Click to preview or drag onto track`;
+
+    chip.innerHTML = `
+      <span class="text-[10px] font-mono opacity-75 pointer-events-none">${chord.degree}</span>
+      <span class="font-bold text-white pointer-events-none">${chord.fullName}</span>
+      <button type="button" class="add-var-btn ml-0.5 px-1.5 py-0.2 rounded bg-slate-800/80 hover:bg-indigo-600 text-[10px] text-sky-300 hover:text-white font-semibold transition cursor-pointer" title="Add to progression">+ Add</button>
+    `;
+
+    chip.addEventListener('click', async (e) => {
+      await audio.init();
+      playChordWithPadAnimation(chord, chip);
+      if (e.target.classList.contains('add-var-btn')) {
+        sequencer.addChord(chord);
+      } else if (sequencer.selectedSlotIndex !== -1) {
+        sequencer.addChord(chord);
+      }
+    });
+
+    chip.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('application/json', JSON.stringify(chord));
+      e.dataTransfer.effectAllowed = 'copy';
+      chip.classList.add('opacity-50');
+    });
+
+    chip.addEventListener('dragend', () => {
+      chip.classList.remove('opacity-50');
+    });
+
+    return chip;
+  }
+
+  function openChordVariationsDrawer(idx, baseChord) {
+    if (!chordVariationsDrawer || !baseChord) return;
+    state.activeVariationIndex = idx;
+
+    // Highlight active pad
+    chordPadsContainer.querySelectorAll('.chord-pad').forEach((el, i) => {
+      if (i === idx) {
+        el.classList.add('ring-2', 'ring-indigo-400', 'border-indigo-400');
+      } else {
+        el.classList.remove('ring-2', 'ring-indigo-400', 'border-indigo-400');
+      }
+    });
+
+    const { extensions, advanced } = getChordVariations(baseChord, state.selectedRoot, state.selectedMode);
+    if (variationsDrawerTitle) {
+      variationsDrawerTitle.textContent = `${baseChord.degree} (${baseChord.fullName}) — Extended, Sus & Secondary Variations`;
+    }
+
+    if (variationsExtContainer) {
+      variationsExtContainer.innerHTML = '';
+      extensions.forEach(v => variationsExtContainer.appendChild(createVariationChip(v, false)));
+    }
+    if (variationsAdvContainer) {
+      variationsAdvContainer.innerHTML = '';
+      advanced.forEach(v => variationsAdvContainer.appendChild(createVariationChip(v, true)));
+    }
+
+    chordVariationsDrawer.classList.remove('hidden');
+  }
+
+  if (closeVariationsBtn) {
+    closeVariationsBtn.addEventListener('click', () => {
+      state.activeVariationIndex = null;
+      if (chordVariationsDrawer) chordVariationsDrawer.classList.add('hidden');
+      chordPadsContainer.querySelectorAll('.chord-pad').forEach(el => {
+        el.classList.remove('ring-2', 'ring-indigo-400', 'border-indigo-400');
+      });
+    });
   }
 
   // Render Compact Chord Degree Pads with Drag & Drop capability
@@ -179,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
       pad.innerHTML = `
         <div class="w-full flex items-center justify-between mb-0.5 pointer-events-none">
           <span class="text-[11px] px-1.5 py-0.2 rounded font-mono font-bold ${badgeColor}">${chord.degree}</span>
-          <span class="text-[10px] text-slate-400 font-mono hidden sm:inline">[${idx + 1}]</span>
+          <span class="text-[10px] text-slate-400 font-mono hidden sm:inline">[${idx + 1}] ▾</span>
         </div>
         <div class="flex items-baseline justify-between w-full my-0.5 pointer-events-none">
           <span class="text-lg sm:text-xl font-black text-white tracking-wide">${chord.fullName}</span>
@@ -198,6 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.classList.contains('add-chord-btn') || sequencer.isRecording) {
           sequencer.recordChord(chord);
         } else {
+          openChordVariationsDrawer(idx, chord);
           if (sequencer.selectedSlotIndex !== -1) {
             sequencer.addChord(chord);
           } else if (sequencer.slots.length === 0) {
