@@ -35,8 +35,8 @@ Built entirely with standard **HTML5 and Web Audio API**, requiring zero backend
 - **Triad vs. 7th Chords**: Quick toggle to instantly convert triads into lush 7th chords (`maj7`, `m7`, `7`, `m7b5`).
 
 ### 3. 🎹 Compact Chord Degree Pads & Context-Sensitive Variations Drawer
-- Slim, compact cards displaying degree numeral (`I`, `ii`, `IV`, `V`), chord name, note breakdown, and `+ Add` button.
-- Draggable directly onto progression slots.
+- Slim, compact cards displaying degree numeral (`I`, `ii`, `IV`, `V`), chord name, and note breakdown.
+- Pure Drag & Drop workflow: click any card to preview sound, then drag and drop directly onto any progression slot.
 - **Context-Sensitive Chord Variations Drawer**: Click any Diatonic Chord pad (e.g., `ii`) to expand a clean drawer directly below with:
   - **Extended & Suspended Colors**: `maj7`, `maj9`, `m7`, `m9`, `add9`, `sus2`, `sus4`, `7sus4`, `6`, `m6`, `m11`.
   - **Slash Inversions, Hybrids & Secondary Dominants**: 1st inversions (`I/3`, `ii/3`), hybrid pedal chords (`ii/V`, `IV/V`), Secondary Dominants (`V/ii`, `V9/ii`, `V/V`, `V/vi`), and Tritone Substitutions (`bII7/x`).

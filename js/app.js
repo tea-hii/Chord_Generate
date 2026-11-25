@@ -179,17 +179,11 @@ document.addEventListener('DOMContentLoaded', () => {
     chip.innerHTML = `
       <span class="text-[10px] font-mono opacity-75 pointer-events-none">${chord.degree}</span>
       <span class="font-bold text-white pointer-events-none">${chord.fullName}</span>
-      <button type="button" class="add-var-btn ml-0.5 px-1.5 py-0.2 rounded bg-slate-800/80 hover:bg-indigo-600 text-[10px] text-sky-300 hover:text-white font-semibold transition cursor-pointer" title="Add to progression">+ Add</button>
     `;
 
-    chip.addEventListener('click', async (e) => {
+    chip.addEventListener('click', async () => {
       await audio.init();
       playChordWithPadAnimation(chord, chip);
-      if (e.target.classList.contains('add-var-btn')) {
-        sequencer.addChord(chord);
-      } else if (sequencer.selectedSlotIndex !== -1) {
-        sequencer.addChord(chord);
-      }
     });
 
     chip.addEventListener('dragstart', (e) => {
@@ -272,26 +266,15 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="text-lg sm:text-xl font-black text-white tracking-wide">${chord.fullName}</span>
           <span class="text-[10px] text-slate-400 font-mono">${notesText}</span>
         </div>
-        <div class="w-full flex items-center justify-between text-[10px] pt-1 border-t border-slate-700/50 text-slate-400">
-          <span class="truncate max-w-[90px] pointer-events-none">${chord.functionName}</span>
-          <button type="button" class="text-sky-400 font-semibold hover:text-sky-300 add-chord-btn cursor-pointer">+ Add</button>
+        <div class="w-full flex items-center justify-between text-[10px] pt-1 border-t border-slate-700/50 text-slate-400 pointer-events-none">
+          <span class="truncate">${chord.functionName}</span>
         </div>
       `;
 
-      pad.addEventListener('click', async (e) => {
+      pad.addEventListener('click', async () => {
         await audio.init();
         playChordWithPadAnimation(chord, pad);
-
-        if (e.target.classList.contains('add-chord-btn') || sequencer.isRecording) {
-          sequencer.recordChord(chord);
-        } else {
-          openChordVariationsDrawer(idx, chord);
-          if (sequencer.selectedSlotIndex !== -1) {
-            sequencer.addChord(chord);
-          } else if (sequencer.slots.length === 0) {
-            sequencer.addChord(chord);
-          }
-        }
+        openChordVariationsDrawer(idx, chord);
       });
 
       pad.addEventListener('dragstart', (e) => {
@@ -328,16 +311,12 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="text-xs px-1.5 py-0.5 rounded font-mono font-bold bg-purple-900/60 text-purple-200">${chord.degree}</span>
           <span class="text-sm font-bold text-white">${chord.fullName}</span>
         </div>
-        <div class="text-[10px] text-purple-300/80 truncate max-w-[120px] hidden sm:block pointer-events-none">${chord.functionName}</div>
-        <button type="button" class="text-xs text-purple-400 font-semibold add-borrowed-btn cursor-pointer">+ Add</button>
+        <div class="text-[10px] text-purple-300/80 truncate max-w-[140px] hidden sm:block pointer-events-none">${chord.functionName}</div>
       `;
 
-      pad.addEventListener('click', async (e) => {
+      pad.addEventListener('click', async () => {
         await audio.init();
         playChordWithPadAnimation(chord, pad);
-        if (e.target.classList.contains('add-borrowed-btn') || sequencer.isRecording || sequencer.selectedSlotIndex !== -1) {
-          sequencer.recordChord(chord);
-        }
       });
 
       pad.addEventListener('dragstart', (e) => {
