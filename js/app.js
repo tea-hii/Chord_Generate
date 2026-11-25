@@ -296,6 +296,12 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'jazz_comping': return '🎷 Jazz';
       case 'reggae_skank': return '🌴 Reggae';
       case 'cinematic_swell': return '🎬 Pulse';
+      case 'chachacha': return '💃 ChaCha';
+      case 'techno': return '⚡ Techno';
+      case 'bedroom_pop': return '🎧 BedPop';
+      case 'synthwave': return '🌆 Synth80s';
+      case 'funk_disco': return '🪩 Disco';
+      case 'neo_soul': return '🎹 NeoSoul';
       case 'block': return '⏹️ Block';
       default: return '🎸 Ballad';
     }

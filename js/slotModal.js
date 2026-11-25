@@ -119,6 +119,12 @@ class SlotModal {
               <option value="jazz_comping">🎷 Jazz Swing Comping (Charleston)</option>
               <option value="reggae_skank">🌴 Reggae / Ska Off-Beat Skank</option>
               <option value="cinematic_swell">🎬 Cinematic Pulse (8th Ostinato)</option>
+              <option value="chachacha">💃 Cha-Cha-Cha (Latin Montuno)</option>
+              <option value="techno">⚡ Techno / Trance Rolling Arp</option>
+              <option value="bedroom_pop">🎧 Bedroom Pop (Dreamy Pluck)</option>
+              <option value="synthwave">🌆 Synthwave / 80s Arp</option>
+              <option value="funk_disco">🪩 Funk / Disco Octave Groove</option>
+              <option value="neo_soul">🎹 Neo-Soul / Gospel Cascade</option>
               <option value="block">⏹️ Block Chord (Simultaneous)</option>
             </select>
 

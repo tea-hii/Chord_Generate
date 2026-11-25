@@ -1113,6 +1113,131 @@ class AudioEngine {
         break;
       }
 
+      case 'chachacha': {
+        // Latin Cha-Cha-Cha: Tumbao bass + Montuno "1, 2, 3, 4-and-1" syncopated chord stabs
+        const step = this.getArpStepSeconds(rate, 0.5, secPerBeat);
+        const bassMidi = strings[0];
+        const altBass = strings[1];
+        // Bass Tumbao: Beat 1, "and" of 2, Beat 4
+        this.playNote(bassMidi, t, secPerBeat * 0.85, Math.round(Math.min(127, baseVel * 1.15)));
+        if (duration >= secPerBeat * 1.6) {
+          this.playNote(altBass, t + secPerBeat * 1.5, secPerBeat * 0.6, Math.round(baseVel * 1.0));
+        }
+        if (duration >= secPerBeat * 3.1) {
+          this.playNote(bassMidi, t + secPerBeat * 3.0, secPerBeat * 0.75, Math.round(baseVel * 1.1));
+        }
+
+        // Cha-Cha-Cha upper Montuno pattern ("2, 3, 4-&-1" / or custom rate steps)
+        const montunoOffsets = rate !== 'auto'
+          ? Array.from({ length: Math.max(2, Math.floor(duration / step)) }, (_, idx) => idx * step)
+          : [0, secPerBeat, secPerBeat * 2.0, secPerBeat * 3.0, secPerBeat * 3.5];
+
+        montunoOffsets.forEach((offset, idx) => {
+          const noteTime = t + offset;
+          if (noteTime >= t + duration - 0.02) return;
+          const isChaCha = (idx >= 3 && rate === 'auto');
+          const velScale = isChaCha ? 0.92 : (idx % 2 === 0 ? 0.86 : 0.78);
+          const stabDur = isChaCha ? secPerBeat * 0.32 : secPerBeat * 0.45;
+          [strings[2], strings[4], strings[5]].forEach((m, j) => {
+            this.playNote(m, noteTime + j * 0.008, stabDur, Math.round(baseVel * velScale));
+          });
+        });
+        break;
+      }
+
+      case 'techno': {
+        // Driving Club Techno / Trance: Rolling 16th-note octave bass + hypnotic acid/trance arp
+        const step = this.getArpStepSeconds(rate, 0.25, secPerBeat);
+        const maxSteps = Math.max(4, Math.floor(duration / step));
+        const arpOrder = [0, 2, 0, 4, 0, 5, 3, 4];
+        const accents = [1.2, 0.72, 0.95, 0.85, 1.15, 0.92, 0.75, 0.88];
+        for (let i = 0; i < maxSteps; i++) {
+          const noteTime = t + i * step;
+          if (noteTime >= t + duration - 0.02) break;
+          const pIdx = i % arpOrder.length;
+          const midi = strings[arpOrder[pIdx]] || strings[0];
+          const v = Math.round(Math.min(127, Math.max(25, baseVel * accents[pIdx])));
+          // Short punchy gate for crisp electronic feel
+          this.playNote(midi, noteTime, step * 0.78, v);
+        }
+        break;
+      }
+
+      case 'bedroom_pop': {
+        // Bedroom Pop / Indie Dream: Warm soft bass anchor + nostalgic cascading dreamy plucks
+        const step = this.getArpStepSeconds(rate, 0.5, secPerBeat);
+        const maxSteps = Math.max(2, Math.floor(duration / step));
+        this.playNote(strings[0], t, Math.min(duration, secPerBeat * 2.5), Math.round(Math.min(127, baseVel * 1.05)));
+        const dreamOrder = [2, 3, 5, 4, 3, 5, 4, 2];
+        const dreamVels = [0.82, 0.88, 0.94, 0.78, 0.85, 0.92, 0.8, 0.75];
+        for (let i = 0; i < maxSteps; i++) {
+          const noteTime = t + i * step + (i % 2 === 1 ? 0.012 : 0); // Subtle human pocket swing
+          if (noteTime >= t + duration - 0.02) break;
+          const pIdx = i % dreamOrder.length;
+          const midi = strings[dreamOrder[pIdx]] || strings[3];
+          const v = Math.round(Math.min(127, Math.max(25, baseVel * dreamVels[pIdx])));
+          this.playNote(midi, noteTime, step * 2.8, v);
+        }
+        break;
+      }
+
+      case 'synthwave': {
+        // 80s Synthwave / Outrun: Steady driving root bass + ascending/descending neon arpeggio
+        const step = this.getArpStepSeconds(rate, 0.25, secPerBeat);
+        const maxSteps = Math.max(4, Math.floor(duration / step));
+        const waveOrder = [0, 1, 2, 3, 4, 5, 4, 3];
+        for (let i = 0; i < maxSteps; i++) {
+          const noteTime = t + i * step;
+          if (noteTime >= t + duration - 0.02) break;
+          const pIdx = i % waveOrder.length;
+          const midi = strings[waveOrder[pIdx]] || strings[0];
+          const isPulse = (i % 4 === 0);
+          const v = Math.round(Math.min(127, Math.max(25, baseVel * (isPulse ? 1.12 : 0.84))));
+          this.playNote(midi, noteTime, step * 1.15, v);
+        }
+        break;
+      }
+
+      case 'funk_disco': {
+        // Funk / Disco Octave Groove: Punchy octave bass jumps + tight 16th syncopated upper "chank"
+        const step = this.getArpStepSeconds(rate, 0.5, secPerBeat);
+        const maxSteps = Math.max(2, Math.floor(duration / step));
+        for (let i = 0; i < maxSteps; i++) {
+          const noteTime = t + i * step;
+          if (noteTime >= t + duration - 0.02) break;
+          if (i % 2 === 0) {
+            // Downbeat: Low Root Bass
+            this.playNote(strings[0], noteTime, step * 0.75, Math.round(Math.min(127, baseVel * 1.15)));
+          } else {
+            // Offbeat: Octave Root jump + crisp staccato upper chord chank
+            this.playNote(strings[2], noteTime, step * 0.55, Math.round(baseVel * 0.95));
+            [strings[3], strings[4], strings[5]].forEach(m => {
+              this.playNote(m, noteTime, step * 0.35, Math.round(baseVel * 0.85));
+            });
+          }
+        }
+        break;
+      }
+
+      case 'neo_soul': {
+        // Neo-Soul / Gospel Cascade: Expressive upward rolled voicings with laid-back pocket fills
+        const rollStagger = 0.032; // Lush slow gospel roll
+        strings.forEach((m, idx) => {
+          const noteTime = t + idx * rollStagger;
+          if (noteTime >= t + duration - 0.02) return;
+          const v = Math.round(Math.min(127, baseVel * (idx === 0 ? 1.12 : 0.84 + idx * 0.03)));
+          this.playNote(m, noteTime, Math.min(duration * 0.75, secPerBeat * 2.2), v);
+        });
+        // Laid-back pocket grace fill on beat 3
+        if (duration >= secPerBeat * 2.5) {
+          const fillTime = t + secPerBeat * 2.25;
+          [strings[3], strings[4], strings[5]].forEach((m, idx) => {
+            this.playNote(m, fillTime + idx * 0.04, secPerBeat * 1.1, Math.round(baseVel * 0.78));
+          });
+        }
+        break;
+      }
+
       case 'block':
       default: {
         // Classic simultaneous block chord

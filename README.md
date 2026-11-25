@@ -53,7 +53,7 @@ Built entirely with standard **HTML5 and Web Audio API**, requiring zero backend
 - **Individual Per-Chord Customization**: Each chord in your progression can have its own distinct accompaniment style and picking speed, allowing dynamic contrast (e.g., slow `1/4` ballad fingerpicking in the verse, fast `1/16` flamenco roll into the chorus).
 - **Picking Speed / Note Subdivision Rate**: Choose between `Auto (Style Default)`, `1/4` (Slow / 1 Beat), `3/16` (Dotted 8th), `1/8` (Ballad Standard), `1/8T` (Triplet Swing), and `1/16` (Fast Roll) — globally or per chord.
 - **Master "⚡ Set All" Control**: Easily set every chord slot in the entire progression to a chosen style and rate with a single click, then fine-tune individual chords as desired.
-- **15 Rich Accompaniment Styles**:
+- **21 Rich Accompaniment Styles**:
   1. **Fingerpicking (Ballad Pluck)**: Emulates an acoustic guitar ballad picking pattern. Deep bass note on beat 1, rolling 8th-note string plucks (Bass -> 3rd -> 5th -> High Melody -> Alternating Bass -> 3rd -> High Melody -> 5th) that breathe naturally.
   2. **Acoustic Strum (Groove)**: Authentic rhythmic acoustic guitar strumming with humanized micro-staggers (~24ms delay between strings) and musical down/up strum velocity contours.
   3. **Walking Bass + Comping (Passing Notes)**: Punchy root bass note on beat 1, off-beat syncopated chord comping, and calculated **single passing notes (leading tones)** right before the next chord transition.
@@ -68,7 +68,13 @@ Built entirely with standard **HTML5 and Web Audio API**, requiring zero backend
   12. **Jazz Swing Comping (Charleston)**: Syncopated jazz chord voicings with swung Charleston rhythm and soft turnaround pickups.
   13. **Reggae / Ska Skank**: Sub-bass on beats 1 and 3 with crisp staccato chord chops strictly on the off-beats.
   14. **Cinematic Pulse (8th Ostinato)**: Driving 8th-note bass pulse with rising crescendo upper voices for film-score builds.
-  15. **Block Chord**: Direct simultaneous trigger for checking raw harmony and voicings.
+  15. **Cha-Cha-Cha (Latin Montuno)**: Syncopated Latin tumbao bass with bright Montuno "1, 2, 3, 4-&-1" chord stabs.
+  16. **Techno / Trance Rolling Arp**: Driving 16th-note gated club bass & octave/fifth rolling electronic arpeggio.
+  17. **Bedroom Pop (Dreamy Pluck)**: Warm indie bass anchor paired with nostalgic, subtly swung top-note plucks.
+  18. **Synthwave / 80s Arp**: Retro driving pulse with ascending/descending neon chord arpeggio.
+  19. **Funk / Disco Octave Groove**: Punchy octave bass jumps with tight syncopated upper chord chanks.
+  20. **Neo-Soul / Gospel Cascade**: Expressive upward rolled voicings with laid-back pocket fills.
+  21. **Block Chord**: Direct simultaneous trigger for checking raw harmony and voicings.
 - **6-String Open Voicing Engine**: Expands traditional closed 3-note triads into wide, studio-grade 6-string open voicings spanning 2.5 octaves (e.g., C2 - G2 - C3 - E3 - G3 - C4), delivering immense warmth and emotional resonance.
 
 ### 6. 🎹 General MIDI (GM) Standard Instrument Soundbank
