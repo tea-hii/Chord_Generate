@@ -96,15 +96,36 @@ class SlotModal {
             <input id="modal-velocity-slider" type="range" min="1" max="127" step="1" value="90" class="w-full accent-indigo-500 cursor-pointer" />
           </div>
 
-          <!-- Section 3: Chord MIDI & Voicing -->
+          <!-- Section 3: Picking & Arpeggio Style for THIS Chord -->
           <div class="flex flex-col gap-1.5 pt-3 border-t border-slate-800">
             <div class="flex items-center justify-between">
-              <label class="font-bold text-slate-200">Chord MIDI & Voicing:</label>
-              <span class="text-[10px] text-amber-400/90 font-medium">Custom Voice Editor</span>
+              <label class="font-bold text-slate-200">Picking / Arpeggio Style:</label>
+              <span class="text-[10px] text-emerald-400/90 font-medium">Per-Chord Voicing</span>
             </div>
-            <p class="text-[11px] text-slate-400">View and fine-tune individual note pitches and timings on the MIDI Grid.</p>
+            <p class="text-[11px] text-slate-400">Choose how this individual chord is plucked, strummed, or arpeggiated.</p>
+            <select id="modal-style-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg text-slate-200 text-xs px-2.5 py-1.5 font-medium focus:outline-none cursor-pointer">
+              <option value="inherit">Default (Follow Global Song Style)</option>
+              <option value="fingerstyle">🎸 Fingerpicking Ballad (Tỉa Ballad 4/4)</option>
+              <option value="strum">🎸 Acoustic Strum (Quạt Chả Groove)</option>
+              <option value="walking_bass">🚶 Walking Bass + Comping (Bè Bass Dẫn + Đệm)</option>
+              <option value="piano_arpeggio">🎹 Piano Ballad Arpeggio (Rải Phím Piano)</option>
+              <option value="flamenco">✨ Spanish Flamenco Roll (Tỉa Nhanh Flamenco)</option>
+              <option value="slow_soul">🎶 Slow Soul / RnB Pluck (Rải Soul Nhẹ Nhàng)</option>
+              <option value="bossa_funk">⚡ Bossa Nova / Funk Pinch (Gảy Ngắt Bossa)</option>
+              <option value="ambient_lofi">🌊 Ambient Lofi Arpeggio (Rải Huyền Ảo Lofi)</option>
+              <option value="block">⏹️ Block Chord (Hợp Âm Khối Đồng Thời)</option>
+            </select>
+          </div>
+
+          <!-- Section 4: MIDI Grid Inspector -->
+          <div class="flex flex-col gap-1.5 pt-3 border-t border-slate-800">
+            <div class="flex items-center justify-between">
+              <label class="font-bold text-slate-200">MIDI Grid Inspector:</label>
+              <span class="text-[10px] text-sky-400/90 font-medium">Visualizer</span>
+            </div>
+            <p class="text-[11px] text-slate-400">View notes and playback laser across the time grid.</p>
             <button id="modal-open-midi-btn" type="button" class="mt-1 w-full py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-indigo-300 font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
-              <span>🎹 Open in MIDI Piano Roll</span>
+              <span>🎹 View in MIDI Grid Inspector</span>
             </button>
           </div>
 
@@ -147,6 +168,7 @@ class SlotModal {
     this.velocityInput = this.modalEl.querySelector('#modal-velocity-input');
     this.velocitySlider = this.modalEl.querySelector('#modal-velocity-slider');
     this.velocityLabel = this.modalEl.querySelector('#modal-velocity-label');
+    this.styleSelect = this.modalEl.querySelector('#modal-style-select');
   }
 
   bindEvents() {
@@ -198,10 +220,12 @@ class SlotModal {
     // Save Changes
     saveBtn.addEventListener('click', () => {
       const beats = this.selectedSixteenths * 0.25;
+      const strumStyle = this.styleSelect ? this.styleSelect.value : 'inherit';
       if (this.onSave) {
         this.onSave(this.currentSlotIndex, {
           beats: beats,
-          velocity: this.selectedVelocity
+          velocity: this.selectedVelocity,
+          strumStyle: strumStyle
         });
       }
       this.close();
@@ -270,6 +294,11 @@ class SlotModal {
     this.velocityInput.value = vel;
     this.velocitySlider.value = vel;
     this.updateVelocityLabel(vel);
+
+    // Match Picking Style
+    if (this.styleSelect) {
+      this.styleSelect.value = slot.strumStyle || (slot.chord && slot.chord.strumStyle) || 'inherit';
+    }
 
     this.modalEl.classList.remove('hidden');
   }

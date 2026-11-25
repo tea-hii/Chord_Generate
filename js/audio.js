@@ -740,7 +740,7 @@ class AudioEngine {
     return [string0, string1, string2, string3, string4, string5];
   }
 
-  // Play a full chord with authentic accompaniment style (Fingerpicking, Strum, Walking Bass, Arpeggio, Block)
+  // Play a full chord with authentic accompaniment style (Fingerpicking, Strum, Walking Bass, Arpeggio, Flamenco, Soul, Bossa, Lofi, Block)
   playChord(chord, startTime = null, duration = 2.2, velocity = null, options = {}) {
     if (!chord || (!chord.midiNotes && !chord.rootName)) return;
     if (!this.ctx) return;
@@ -751,7 +751,15 @@ class AudioEngine {
     const nextChord = options.nextChord || null;
 
     const strings = this.buildVoicing(chord);
-    const style = this.strumStyle || 'fingerstyle';
+    
+    // Choose specific slot style if provided, else chord style, else fallback to global style
+    let style = options.style;
+    if (!style || style === 'inherit') {
+      style = (chord && (chord.strumStyle || chord.style)) || this.strumStyle || 'fingerstyle';
+    }
+    if (style === 'inherit') {
+      style = this.strumStyle || 'fingerstyle';
+    }
 
     switch (style) {
       case 'fingerstyle': {
@@ -865,6 +873,82 @@ class AudioEngine {
           const isBass = (i % arpeggioNotes.length) === 0;
           const v = Math.round(Math.min(127, Math.max(25, isBass ? baseVel * 1.15 : baseVel * (0.82 + (i % 3) * 0.06))));
           this.playNote(midi, noteTime, step * 2.5, v);
+        }
+        break;
+      }
+
+      case 'flamenco': {
+        // Fast passionate 16th-note Spanish tremolo roll
+        const step = secPerBeat * 0.25; // 16th note step
+        const maxSteps = Math.max(4, Math.floor(duration / step));
+        const patternIndices = [0, 3, 4, 5, 4, 3, 5, 4];
+        const velMultipliers = [1.2, 0.88, 0.95, 1.05, 0.9, 0.85, 1.0, 0.9];
+        for (let i = 0; i < maxSteps; i++) {
+          const noteTime = t + i * step;
+          if (noteTime >= t + duration - 0.02) break;
+          const pIdx = i % patternIndices.length;
+          const strIdx = patternIndices[pIdx];
+          const midi = strings[strIdx] || strings[0];
+          const v = Math.round(Math.min(127, Math.max(25, baseVel * velMultipliers[pIdx])));
+          this.playNote(midi, noteTime, step * 2.2, v);
+        }
+        break;
+      }
+
+      case 'slow_soul': {
+        // Soul / RnB: Deep Bass on 1, pinched mid-high chords on offbeats, melodic top note
+        const bassMidi = strings[0];
+        this.playNote(bassMidi, t, Math.min(duration, secPerBeat * 2.0), Math.round(Math.min(127, baseVel * 1.15)));
+
+        if (duration >= secPerBeat * 1.0) {
+          const pinchNotes = [strings[2], strings[3], strings[4]];
+          pinchNotes.forEach(m => this.playNote(m, t + secPerBeat, secPerBeat * 1.2, Math.round(baseVel * 0.85)));
+        }
+
+        if (duration >= secPerBeat * 2.0) {
+          this.playNote(strings[5], t + secPerBeat * 2.0, secPerBeat * 1.2, Math.round(baseVel * 0.95));
+        }
+
+        if (duration >= secPerBeat * 3.0) {
+          const pinchNotes = [strings[3], strings[4], strings[5]];
+          pinchNotes.forEach(m => this.playNote(m, t + secPerBeat * 3.0, secPerBeat * 0.9, Math.round(baseVel * 0.8)));
+        }
+        break;
+      }
+
+      case 'bossa_funk': {
+        // Syncopated Brazilian Bossa / Funk Pinch with staccato accents
+        const bassMidi = strings[0];
+        this.playNote(bassMidi, t, secPerBeat * 0.6, Math.round(Math.min(127, baseVel * 1.15)));
+
+        const pinch = (timeOffset, velScale) => {
+          [strings[2], strings[3], strings[4]].forEach(m => {
+            this.playNote(m, t + timeOffset, secPerBeat * 0.45, Math.round(baseVel * velScale));
+          });
+        };
+
+        if (duration >= secPerBeat * 0.75) pinch(secPerBeat * 0.75, 0.85);
+        if (duration >= secPerBeat * 1.5) pinch(secPerBeat * 1.5, 0.88);
+        if (duration >= secPerBeat * 2.0) {
+          this.playNote(strings[1], t + secPerBeat * 2.0, secPerBeat * 0.6, Math.round(baseVel * 1.05));
+        }
+        if (duration >= secPerBeat * 2.75) pinch(secPerBeat * 2.75, 0.82);
+        if (duration >= secPerBeat * 3.5) pinch(secPerBeat * 3.5, 0.8);
+        break;
+      }
+
+      case 'ambient_lofi': {
+        // Cascading ethereal harp-like arpeggio with soft attack and high sustain
+        const step = secPerBeat * 0.35;
+        const maxSteps = Math.max(3, Math.floor(duration / step));
+        const harpNotes = [strings[0], strings[1], strings[2], strings[3], strings[4], strings[5], strings[4], strings[3]];
+        for (let i = 0; i < maxSteps; i++) {
+          const noteTime = t + i * step;
+          if (noteTime >= t + duration - 0.02) break;
+          const midi = harpNotes[i % harpNotes.length];
+          const isBass = (i % harpNotes.length) === 0;
+          const v = Math.round(Math.min(127, Math.max(25, isBass ? baseVel * 1.05 : baseVel * 0.8)));
+          this.playNote(midi, noteTime, step * 4.0, v);
         }
         break;
       }

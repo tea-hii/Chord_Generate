@@ -39,28 +39,30 @@ Built entirely with standard **HTML5 and Web Audio API**, requiring zero backend
 - Draggable directly onto progression slots.
 - **Borrowed Chords (Modal Interchange)**: Suggestions for poignant non-diatonic chords (minor `iv`, `bVII`, `bVI`, `V/vi`).
 
-### 4. 🎹 Interactive MIDI Piano Roll & FL Studio / FL Studio Mobile Editor
-- **Multiple Clear Exit Paths**: Features a prominent red **"✕ Exit"** button in the header, a green **"✓ Done & Apply"** button in the footer, instant **ESC key shortcut**, and backdrop click dismiss so you can never get stuck.
-- **FL Studio Desktop Signature Workflow**:
-  - **Left Click**: Draw new notes on empty cells; click & drag note body to move in time & pitch.
-  - **Right Click**: Instantly deletes any note under cursor (FL Studio signature erase!). Dragging with right-click acts as an eraser brush.
-  - **Note Resizing**: Hover over any note's right edge (`ew-resize` cursor) and drag horizontally to stretch or contract duration with snap.
-- **FL Studio Mobile Touch-Friendly Tool Palette**:
-  - `✏️ Draw`: Click/tap to place notes and drag duration.
-  - `🗑️ Erase`: Click/tap any note to delete it (ideal for touchscreens).
-  - `↔️ Move`: Drag notes across the time grid and pitch rows.
-- **Grid Snap Control**: Switch resolution between `1/16`, `1/8`, `1/4 (Beat)`, `1/2 (2 Beats)`, or `1 Bar`.
-- **DAW-grade Grid**: Spans piano keys from C2 to C6 horizontally divided into Bars, Beats, and Subdivisions.
-- **Real-Time Playhead**: Sweeps smoothly across the grid in real-time synchronization with the Web Audio clock.
-- **Automatic Sync**: Edits made in the Piano Roll synchronize back to the Progression Track and Chord Voicings in real-time.
+### 4. 🎹 Streamlined MIDI Grid Inspector & Visualizer
+- **Read-Only / Clean Inspection**: View exact MIDI note arrangements, pitch contours, and timing subdivisions without complex or accidental editing steps.
+- **Audition by Clicking Piano Keys**: Click any piano key in the left keyboard column (C2 through C6) to preview notes and pitches instantly.
+- **Real-Time Playhead Sync**: Sweeps smoothly across the grid in real-time synchronization with the Web Audio clock.
+- **Multiple Clear Exit Paths**:
+  - Prominent **"✕ Exit"** button in top header
+  - **"✕ Close Viewer (ESC)"** button in bottom control bar
+  - Keyboard **ESC** shortcut
+  - Clicking outside the modal backdrop
 
-### 5. 🎸 Emotional Accompaniment Styles & 6-String Guitar Voicing Engine
-- **Fingerpicking (Ballad Pluck)**: Emulates a singer-songwriter picking an acoustic guitar or ballad piano. Triggers a deep, resonant bass note on beat 1, followed by rolling 8th-note string plucks (Bass -> 3rd -> 5th -> High Melody -> Alternating Bass -> 3rd -> High Melody -> 5th) that ring out and breathe naturally.
-- **Acoustic Strum (Groove)**: Authentic rhythmic acoustic guitar strumming with humanized micro-staggers (~24ms delay between strings) and musical down/up strum velocity contours across the measure.
-- **Walking Bass + Comping (Passing Notes)**: Plays a strong, punchy root bass note on beat 1, off-beat syncopated chord comping, and calculates an automatic **single passing note (walking bass leading tone)** right before the next chord transition (e.g., C -> B passing note -> Am).
-- **Piano Ballad Arpeggio**: Flowing, cascading 2-octave rolling arpeggio ideal for emotional pop and ballad compositions.
-- **Block Chord**: Direct simultaneous trigger for checking raw harmony and voicings.
-- **6-String Open Voicing Engine**: Expands traditional closed 3-note triads into wide, studio-grade 6-string open voicings spanning 2.5 octaves (e.g., C2 - G2 - C3 - E3 - G3 - C4; A2 - E3 - A3 - C4 - E4 - A4), delivering immense warmth, fullness, and emotional resonance.
+### 5. 🎸 Per-Chord Picking & Arpeggio Styles (with "Set All" Master Control)
+- **Individual Per-Chord Customization**: Each chord in your progression can have its own distinct accompaniment style, allowing dynamic contrast (e.g., ballad fingerpicking in the verse, rapid flamenco roll into the chorus, walking bass in the bridge).
+- **Master "⚡ Set All" Control**: Easily set every chord slot in the entire progression to a chosen style with a single click, then fine-tune individual chords as desired.
+- **9 Rich Accompaniment Styles**:
+  1. **Fingerpicking (Ballad Pluck)**: Emulates an acoustic guitar ballad picking pattern. Deep bass note on beat 1, rolling 8th-note string plucks (Bass -> 3rd -> 5th -> High Melody -> Alternating Bass -> 3rd -> High Melody -> 5th) that breathe naturally.
+  2. **Acoustic Strum (Groove)**: Authentic rhythmic acoustic guitar strumming with humanized micro-staggers (~24ms delay between strings) and musical down/up strum velocity contours.
+  3. **Walking Bass + Comping (Passing Notes)**: Punchy root bass note on beat 1, off-beat syncopated chord comping, and calculated **single passing notes (leading tones)** right before the next chord transition.
+  4. **Piano Ballad Arpeggio**: Flowing, cascading 2-octave rolling arpeggio ideal for emotional pop and ballad compositions.
+  5. **Spanish Flamenco Roll (Rasgueado)**: Fiery, rapid 16th-note continuous arpeggio roll with accenting dynamics.
+  6. **Slow Soul / RnB (Bass + Offbeat Pinch)**: Deep warm bass anchor on 1, followed by syncopated pinch chords on the offbeats and high melodic fills.
+  7. **Bossa Nova / Funk (Pinch & Staccato)**: Crisp Brazilian syncopated thumb-bass & finger-pinched staccato chord hits.
+  8. **Ambient Lofi (Ethereal Harp Arpeggio)**: Lush, high-sustain cascading arpeggio with gentle attack for dreamy, chill lofi aesthetics.
+  9. **Block Chord**: Direct simultaneous trigger for checking raw harmony and voicings.
+- **6-String Open Voicing Engine**: Expands traditional closed 3-note triads into wide, studio-grade 6-string open voicings spanning 2.5 octaves (e.g., C2 - G2 - C3 - E3 - G3 - C4), delivering immense warmth and emotional resonance.
 
 ### 6. 🎹 General MIDI (GM) Standard Instrument Soundbank
 Features 16 standard General MIDI instruments synthesized via Web Audio API with studio convolution reverb:

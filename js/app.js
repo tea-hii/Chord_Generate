@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Audio settings
   const instrumentSelect = document.getElementById('instrument-select');
   const strumSelect = document.getElementById('strum-select');
+  const applyStyleAllBtn = document.getElementById('apply-style-all-btn');
   const masterVolumeSlider = document.getElementById('master-volume');
   const metronomeVolumeSlider = document.getElementById('metronome-volume');
   const beatLeds = document.querySelectorAll('.beat-led');
@@ -276,6 +277,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Helper to format short picking style badges on chord cards
+  function getStyleBadge(style) {
+    switch (style) {
+      case 'fingerstyle': return '🎸 Ballad';
+      case 'strum': return '🎸 Strum';
+      case 'walking_bass': return '🚶 Walking';
+      case 'piano_arpeggio': return '🎹 Arp';
+      case 'flamenco': return '✨ Flamenco';
+      case 'slow_soul': return '🎶 Soul';
+      case 'bossa_funk': return '⚡ Bossa';
+      case 'ambient_lofi': return '🌊 Lofi';
+      case 'block': return '⏹️ Block';
+      default: return '🎸 Ballad';
+    }
+  }
+
   // 5. Render Progression Timeline Slots (With 2D Minimalist Icons, Empty Slots & 1/16th Grid)
   function renderTimelineSlots(slots) {
     timelineSlots.innerHTML = '';
@@ -294,6 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const fractionStr = beatsToFraction(slot.beats);
       const isSelected = sequencer.selectedSlotIndex === index;
       const isEmpty = (slot.chord === null);
+      const styleBadge = getStyleBadge(slot.strumStyle || (slot.chord && slot.chord.strumStyle) || audio.strumStyle);
 
       const slotEl = document.createElement('div');
       slotEl.dataset.index = index;
@@ -340,10 +358,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         slotEl.innerHTML = `
           <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-            <span class="font-mono bg-slate-950 px-1.5 py-0.5 rounded text-indigo-300 text-[10px]">Bar ${barNum}</span>
+            <div class="flex items-center space-x-1">
+              <span class="font-mono bg-slate-950 px-1 py-0.5 rounded text-indigo-300 text-[10px]">B${barNum}</span>
+              <span class="text-[9px] px-1 py-0.5 rounded bg-indigo-950/80 text-indigo-300 font-mono border border-indigo-800/50" title="Picking Style: ${styleBadge}">${styleBadge}</span>
+            </div>
             <div class="flex items-center space-x-1">
               <!-- Minimalist 2D Pencil Edit Button -->
-              <button type="button" class="edit-slot-btn p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer flex items-center justify-center" title="Edit Duration (${fractionStr}) & Velocity">
+              <button type="button" class="edit-slot-btn p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer flex items-center justify-center" title="Edit Duration (${fractionStr}), Style & Velocity">
                 ${SVG_PENCIL}
               </button>
               <!-- Minimalist 2D Trash Button: Clears chord from slot, KEEPING the slot empty in place -->
@@ -387,10 +408,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
               }
             }
+            const slotStyle = slot.strumStyle || (slot.chord && slot.chord.strumStyle) || null;
             audio.playChord(slot.chord, null, slot.beats * sequencer.getSecondsPerBeat(), slot.velocity || 90, {
               beats: slot.beats,
               secPerBeat: sequencer.getSecondsPerBeat(),
-              nextChord: nextChord
+              nextChord: nextChord,
+              style: slotStyle
             });
           });
         }
@@ -458,7 +481,8 @@ document.addEventListener('DOMContentLoaded', () => {
           audio.playChord(slot.chord, null, slot.beats * sequencer.getSecondsPerBeat(), slot.velocity || 90, {
             beats: slot.beats,
             secPerBeat: sequencer.getSecondsPerBeat(),
-            nextChord: nextChord
+            nextChord: nextChord,
+            style: slot.strumStyle || (slot.chord && slot.chord.strumStyle) || null
           });
         });
       }
@@ -496,7 +520,8 @@ document.addEventListener('DOMContentLoaded', () => {
             audio.playChord(chordData, null, slot.beats * sequencer.getSecondsPerBeat(), slot.velocity || 90, {
               beats: slot.beats,
               secPerBeat: sequencer.getSecondsPerBeat(),
-              nextChord: nextChord
+              nextChord: nextChord,
+              style: slot.strumStyle || (slot.chord && slot.chord.strumStyle) || null
             });
           }
         } catch (err) {
@@ -655,9 +680,36 @@ document.addEventListener('DOMContentLoaded', () => {
     audio.setInstrument(e.target.value);
   });
 
+  function applyStyleToAllSlots(selectedStyle) {
+    audio.setStrumStyle(selectedStyle);
+    sequencer.slots.forEach(s => {
+      s.strumStyle = selectedStyle;
+      if (s.chord) s.chord.strumStyle = selectedStyle;
+    });
+    renderTimelineSlots(sequencer.slots);
+  }
+
   strumSelect.addEventListener('change', (e) => {
-    audio.setStrumStyle(e.target.value);
+    applyStyleToAllSlots(e.target.value);
   });
+
+  if (applyStyleAllBtn) {
+    applyStyleAllBtn.addEventListener('click', () => {
+      applyStyleToAllSlots(strumSelect.value);
+      const originalHtml = applyStyleAllBtn.innerHTML;
+      applyStyleAllBtn.innerHTML = `
+        <svg class="w-3.5 h-3.5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+        </svg>
+        <span class="text-[11px] font-semibold text-emerald-300">Done!</span>
+      `;
+      applyStyleAllBtn.classList.add('border-emerald-500/60', 'bg-emerald-500/10');
+      setTimeout(() => {
+        applyStyleAllBtn.innerHTML = originalHtml;
+        applyStyleAllBtn.classList.remove('border-emerald-500/60', 'bg-emerald-500/10');
+      }, 1000);
+    });
+  }
 
   masterVolumeSlider.addEventListener('input', (e) => {
     audio.setVolume(parseFloat(e.target.value));
