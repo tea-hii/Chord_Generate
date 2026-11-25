@@ -209,6 +209,58 @@ class Sequencer {
     }
   }
 
+  // Duplicate a slot (and its chord) to the end of the progression
+  duplicateSlot(index) {
+    if (index >= 0 && index < this.slots.length) {
+      const src = this.slots[index];
+      const clonedChord = src.chord ? JSON.parse(JSON.stringify(src.chord)) : null;
+      this.slots.push({
+        id: 'slot_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        chord: clonedChord,
+        beats: src.beats || 4.0,
+        velocity: src.velocity || 90,
+        strumStyle: src.strumStyle || 'inherit',
+        arpRate: src.arpRate || 'inherit'
+      });
+      this.rebalanceSlotsToBeats();
+      if (this.onSlotsUpdate) this.onSlotsUpdate(this.slots);
+    }
+  }
+
+  // Move chord from srcIdx to an empty targetIdx, or swap if targetIdx is filled
+  moveOrSwapSlotChord(srcIdx, targetIdx) {
+    if (srcIdx === targetIdx) return;
+    const src = this.slots[srcIdx];
+    const dst = this.slots[targetIdx];
+    if (!src || !dst || !src.chord) return;
+
+    if (dst.chord === null) {
+      dst.chord = src.chord;
+      dst.velocity = src.velocity;
+      dst.strumStyle = src.strumStyle;
+      dst.arpRate = src.arpRate;
+      src.chord = null;
+    } else {
+      const tmpChord = dst.chord;
+      const tmpVel = dst.velocity;
+      const tmpStyle = dst.strumStyle;
+      const tmpRate = dst.arpRate;
+
+      dst.chord = src.chord;
+      dst.velocity = src.velocity;
+      dst.strumStyle = src.strumStyle;
+      dst.arpRate = src.arpRate;
+
+      src.chord = tmpChord;
+      src.velocity = tmpVel;
+      src.strumStyle = tmpStyle;
+      src.arpRate = tmpRate;
+    }
+
+    this.rebalanceSlotsToBeats();
+    if (this.onSlotsUpdate) this.onSlotsUpdate(this.slots);
+  }
+
   // Update slot properties (beats, velocity, etc.)
   updateSlot(index, updates) {
     if (index >= 0 && index < this.slots.length) {
@@ -236,6 +288,58 @@ class Sequencer {
       this.rebalanceSlotsToBeats();
       if (this.onSlotsUpdate) this.onSlotsUpdate(this.slots);
     }
+  }
+
+  // Duplicate a slot (and its chord) to the end of the progression
+  duplicateSlot(index) {
+    if (index >= 0 && index < this.slots.length) {
+      const src = this.slots[index];
+      const clonedChord = src.chord ? JSON.parse(JSON.stringify(src.chord)) : null;
+      this.slots.push({
+        id: 'slot_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        chord: clonedChord,
+        beats: src.beats || 4.0,
+        velocity: src.velocity || 90,
+        strumStyle: src.strumStyle || 'inherit',
+        arpRate: src.arpRate || 'inherit'
+      });
+      this.rebalanceSlotsToBeats();
+      if (this.onSlotsUpdate) this.onSlotsUpdate(this.slots);
+    }
+  }
+
+  // Move chord from srcIdx to an empty targetIdx, or swap if targetIdx is filled
+  moveOrSwapSlotChord(srcIdx, targetIdx) {
+    if (srcIdx === targetIdx) return;
+    const src = this.slots[srcIdx];
+    const dst = this.slots[targetIdx];
+    if (!src || !dst || !src.chord) return;
+
+    if (dst.chord === null) {
+      dst.chord = src.chord;
+      dst.velocity = src.velocity;
+      dst.strumStyle = src.strumStyle;
+      dst.arpRate = src.arpRate;
+      src.chord = null;
+    } else {
+      const tmpChord = dst.chord;
+      const tmpVel = dst.velocity;
+      const tmpStyle = dst.strumStyle;
+      const tmpRate = dst.arpRate;
+
+      dst.chord = src.chord;
+      dst.velocity = src.velocity;
+      dst.strumStyle = src.strumStyle;
+      dst.arpRate = src.arpRate;
+
+      src.chord = tmpChord;
+      src.velocity = tmpVel;
+      src.strumStyle = tmpStyle;
+      src.arpRate = tmpRate;
+    }
+
+    this.rebalanceSlotsToBeats();
+    if (this.onSlotsUpdate) this.onSlotsUpdate(this.slots);
   }
 
   rebalanceSlotsToBeats() {

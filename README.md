@@ -10,7 +10,8 @@ Built entirely with standard **HTML5 and Web Audio API**, requiring zero backend
 
 ### 1. 🎯 Drag & Drop Progression Workflow & Empty Slots
 - **Add Empty Slots**: Click **"+ Add Slot"** to insert an empty chord slot (`+ Drop Chord Here`).
-- **Drag & Drop**: Drag any Scale Degree Chord (I, ii, iii, IV, V...) or Borrowed Chord and drop it directly into any slot!
+- **Drag & Drop Anywhere**: Drag any Scale Degree, Extended/Sus, or Borrowed Chord onto any slot, **or drag a filled chord between slots** in the Progression Track to move it into an empty slot (or swap two filled slots).
+- **Duplicate Chord to End**: Click the minimalist 2D Duplicate button on any filled chord slot to append an exact copy (including duration, velocity, and picking style) to the end of the progression (e.g., `1 2 3 4` → duplicate `1` → `1 2 3 4 1`).
 - **Sound on Click**: Clicking any chord in the progression track plays its audio voicing in real-time.
 - **Minimalist 2D Vector Trash Bin Functionality**:
   - Clicking the trash bin on a **filled chord slot** clears the chord from that slot while **keeping the empty slot in place** so you can drop a different chord into it without disrupting your progression arrangement.

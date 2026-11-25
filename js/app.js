@@ -91,6 +91,13 @@ document.addEventListener('DOMContentLoaded', () => {
     </svg>
   `;
 
+  const SVG_DUPLICATE = `
+    <svg class="w-3.5 h-3.5 inline-block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+    </svg>
+  `;
+
   // 1. Populate Root Key Buttons (C, C#, D, D#, E, F, F#, G, G#, A, A#, B)
   const rootNotes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   rootKeyButtonsContainer.innerHTML = '';
@@ -440,10 +447,11 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         `;
       } else {
-        // --- FILLED CHORD SLOT ---
-        slotEl.className = `slot-item relative flex-shrink-0 w-32 sm:w-36 p-2.5 rounded-xl border border-slate-700 bg-slate-800/90 flex flex-col justify-between transition-all shadow-md ${
+        // --- FILLED CHORD SLOT (Draggable between slots) ---
+        slotEl.className = `slot-item relative flex-shrink-0 w-32 sm:w-36 p-2.5 rounded-xl border border-slate-700 bg-slate-800/90 flex flex-col justify-between transition-all shadow-md cursor-grab ${
           isSelected ? 'ring-2 ring-indigo-500' : ''
         }`;
+        slotEl.setAttribute('draggable', 'true');
 
         slotEl.innerHTML = `
           <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
@@ -460,9 +468,9 @@ document.addEventListener('DOMContentLoaded', () => {
               <button type="button" class="clear-chord-btn p-1 rounded bg-amber-950/40 hover:bg-amber-900 text-amber-300 transition cursor-pointer flex items-center justify-center" title="Clear chord (keep empty slot in place)">
                 ${SVG_TRASH}
               </button>
-              <!-- Minimalist 2D Close Button: Delete Entire Slot -->
-              <button type="button" class="delete-slot-btn p-1 rounded bg-slate-800 hover:bg-rose-900 text-slate-400 hover:text-white transition cursor-pointer flex items-center justify-center" title="Remove slot completely">
-                ${SVG_CLOSE}
+              <!-- Minimalist 2D Duplicate Button: Appends a copy of this chord to the end -->
+              <button type="button" class="duplicate-slot-btn p-1 rounded bg-indigo-950/50 hover:bg-indigo-600 text-indigo-300 hover:text-white transition cursor-pointer flex items-center justify-center" title="Duplicate chord to end of progression">
+                ${SVG_DUPLICATE}
               </button>
             </div>
           </div>
@@ -483,7 +491,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 1. Click on slot
       slotEl.addEventListener('click', (e) => {
-        if (e.target.closest('.delete-slot-btn') || e.target.closest('.clear-chord-btn') || e.target.closest('.edit-slot-btn') || e.target.closest('.edit-duration-badge') || e.target.closest('.play-single-slot-btn')) {
+        if (e.target.closest('.delete-slot-btn') || e.target.closest('.duplicate-slot-btn') || e.target.closest('.clear-chord-btn') || e.target.closest('.edit-slot-btn') || e.target.closest('.edit-duration-badge') || e.target.closest('.play-single-slot-btn')) {
           return;
         }
 
@@ -546,12 +554,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      // 4. Delete Slot Button (completely removes the slot)
+      // 4. Delete Empty Slot Button (completely removes empty slot)
       const deleteSlotBtn = slotEl.querySelector('.delete-slot-btn');
       if (deleteSlotBtn) {
         deleteSlotBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           sequencer.removeSlot(index);
+        });
+      }
+
+      // 4b. Duplicate Chord Button (appends copy to end of progression)
+      const duplicateSlotBtn = slotEl.querySelector('.duplicate-slot-btn');
+      if (duplicateSlotBtn) {
+        duplicateSlotBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sequencer.duplicateSlot(index);
+        });
+      }
+
+      // 4c. Drag Start / End for moving filled chords between slots
+      if (!isEmpty) {
+        slotEl.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('application/json', JSON.stringify({
+            __fromSlotIndex: index,
+            chord: slot.chord
+          }));
+          e.dataTransfer.effectAllowed = 'move';
+          slotEl.classList.add('opacity-50');
+        });
+
+        slotEl.addEventListener('dragend', () => {
+          slotEl.classList.remove('opacity-50');
         });
       }
 
@@ -579,10 +612,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      // 6. Drag and Drop onto this Slot
+      // 6. Drag and Drop onto this Slot (from Chord Pads OR moved from another Slot)
       slotEl.addEventListener('dragover', (e) => {
         e.preventDefault();
-        e.dataTransfer.dropEffect = 'copy';
+        e.dataTransfer.dropEffect = 'move';
         slotEl.classList.add('drop-target-active');
       });
 
@@ -594,9 +627,24 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         slotEl.classList.remove('drop-target-active');
         try {
-          const chordData = JSON.parse(e.dataTransfer.getData('application/json'));
-          if (chordData && chordData.fullName) {
-            slot.chord = chordData;
+          const payload = JSON.parse(e.dataTransfer.getData('application/json'));
+          if (payload && payload.__fromSlotIndex !== undefined) {
+            // Move or swap chord between Progression Track slots
+            const srcIdx = payload.__fromSlotIndex;
+            if (srcIdx === index) return;
+            sequencer.moveOrSwapSlotChord(srcIdx, index);
+            const movedSlot = sequencer.slots[index];
+            if (movedSlot && movedSlot.chord) {
+              await audio.init();
+              audio.playChord(movedSlot.chord, null, movedSlot.beats * sequencer.getSecondsPerBeat(), movedSlot.velocity || 90, {
+                beats: movedSlot.beats,
+                secPerBeat: sequencer.getSecondsPerBeat(),
+                style: movedSlot.strumStyle || (movedSlot.chord && movedSlot.chord.strumStyle) || null,
+                rate: movedSlot.arpRate || (movedSlot.chord && movedSlot.chord.arpRate) || null
+              });
+            }
+          } else if (payload && payload.fullName) {
+            slot.chord = payload;
             sequencer.rebalanceSlotsToBeats();
             renderTimelineSlots(sequencer.slots);
 
@@ -609,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
               }
             }
-            audio.playChord(chordData, null, slot.beats * sequencer.getSecondsPerBeat(), slot.velocity || 90, {
+            audio.playChord(payload, null, slot.beats * sequencer.getSecondsPerBeat(), slot.velocity || 90, {
               beats: slot.beats,
               secPerBeat: sequencer.getSecondsPerBeat(),
               nextChord: nextChord,
