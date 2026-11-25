@@ -52,37 +52,10 @@
 
       <!-- Quick Sound Settings -->
       <div class="flex items-center flex-wrap gap-2 text-xs">
-        <!-- General MIDI Instrument Selector -->
-        <div class="flex items-center space-x-1 bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5">
-          <span class="text-slate-400">Instrument:</span>
-          <select id="instrument-select" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer max-w-[190px] truncate">
-            <!-- Populated dynamically via app.js -->
-          </select>
-        </div>
-
-        <!-- Accompaniment Playback Style -->
-        <div class="flex items-center space-x-1.5 bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5" title="Accompaniment Playback Style">
-          <span class="text-slate-400 font-medium">Style:</span>
-          <select id="strum-select" class="bg-transparent text-white font-bold focus:outline-none cursor-pointer text-xs max-w-[170px] truncate">
-            <option value="fingerstyle" class="bg-slate-900" selected>🎸 Fingerpicking Ballad</option>
-            <option value="strum" class="bg-slate-900">🎸 Acoustic Strum</option>
-            <option value="walking_bass" class="bg-slate-900">🚶 Walking Bass + Comping</option>
-            <option value="piano_arpeggio" class="bg-slate-900">🎹 Piano Ballad Arpeggio</option>
-            <option value="flamenco" class="bg-slate-900">✨ Spanish Flamenco Roll</option>
-            <option value="slow_soul" class="bg-slate-900">🎶 Slow Soul / RnB Pluck</option>
-            <option value="bossa_funk" class="bg-slate-900">⚡ Bossa Nova / Funk Pinch</option>
-            <option value="ambient_lofi" class="bg-slate-900">🌊 Ambient Lofi Arpeggio</option>
-            <option value="block" class="bg-slate-900">⏹️ Block Chord (Simultaneous)</option>
-          </select>
-          <button id="apply-style-all-btn" type="button" class="px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold text-[11px] shadow-sm transition cursor-pointer flex items-center gap-0.5" title="Set this picking style to ALL chord slots">
-            <span>⚡ Set All</span>
-          </button>
-        </div>
-
         <!-- Master Volume -->
         <div class="flex items-center space-x-1.5 bg-slate-800/80 border border-slate-700 rounded-lg px-2.5 py-1.5">
           <span>🔊</span>
-          <input id="master-volume" type="range" min="0" max="1" step="0.05" value="0.8" class="w-16 accent-indigo-500 cursor-pointer" title="Master Volume" />
+          <input id="master-volume" type="range" min="0" max="1" step="0.05" value="0.8" class="w-16 sm:w-20 accent-indigo-500 cursor-pointer" title="Master Volume" />
         </div>
       </div>
     </div>
@@ -171,6 +144,40 @@
         </div>
 
       </div>
+    </section>
+
+    <!-- INSTRUMENT & ACCOMPANIMENT STYLE BAR (RIGHT ABOVE PROGRESSION TRACK) -->
+    <section class="studio-card rounded-2xl px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <!-- General MIDI Instrument Selector -->
+        <div class="flex items-center space-x-1.5 bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5">
+          <span class="text-slate-400 font-medium">🎹 Instrument:</span>
+          <select id="instrument-select" class="bg-transparent text-white font-semibold focus:outline-none cursor-pointer max-w-[200px] sm:max-w-[230px] truncate">
+            <!-- Populated dynamically via app.js -->
+          </select>
+        </div>
+
+        <!-- Accompaniment Playback Style -->
+        <div class="flex items-center space-x-1.5 bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-1.5" title="Accompaniment Playback Style">
+          <span class="text-slate-400 font-medium">🎸 Style:</span>
+          <select id="strum-select" class="bg-transparent text-white font-bold focus:outline-none cursor-pointer text-xs max-w-[180px] sm:max-w-[210px] truncate">
+            <option value="fingerstyle" class="bg-slate-900" selected>🎸 Fingerpicking Ballad</option>
+            <option value="strum" class="bg-slate-900">🎸 Acoustic Strum</option>
+            <option value="walking_bass" class="bg-slate-900">🚶 Walking Bass + Comping</option>
+            <option value="piano_arpeggio" class="bg-slate-900">🎹 Piano Ballad Arpeggio</option>
+            <option value="flamenco" class="bg-slate-900">✨ Spanish Flamenco Roll</option>
+            <option value="slow_soul" class="bg-slate-900">🎶 Slow Soul / RnB Pluck</option>
+            <option value="bossa_funk" class="bg-slate-900">⚡ Bossa Nova / Funk Pinch</option>
+            <option value="ambient_lofi" class="bg-slate-900">🌊 Ambient Lofi Arpeggio</option>
+            <option value="block" class="bg-slate-900">⏹️ Block Chord (Simultaneous)</option>
+          </select>
+          <button id="apply-style-all-btn" type="button" class="px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold text-[11px] shadow-sm transition cursor-pointer flex items-center gap-1" title="Set this picking style to ALL chord slots">
+            <span>⚡ Set All</span>
+          </button>
+        </div>
+      </div>
+
+      <span class="text-[11px] text-slate-400 hidden lg:inline">Set global sound & picking style, or customize each chord slot individually</span>
     </section>
 
     <!-- 2. PROGRESSION TRACK (TIMELINE & SLOTS) -->
