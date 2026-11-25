@@ -1238,6 +1238,129 @@ class AudioEngine {
         break;
       }
 
+      case 'vn_bolero': {
+        // Vietnamese Bolero / Rumba Ballad: Bass -> Pinch -> Pinch -> AltBass -> Bass -> Rolling Fill
+        const bassMidi = strings[0];
+        const altBass = strings[1];
+        const pinch = (offset, durScale, velScale) => {
+          if (offset >= duration - 0.02) return;
+          [strings[2], strings[3], strings[4]].forEach((m, j) => {
+            this.playNote(m, t + offset + j * 0.008, secPerBeat * durScale, Math.round(baseVel * velScale));
+          });
+        };
+
+        // Beat 1: Deep Root Bass
+        this.playNote(bassMidi, t, secPerBeat * 1.1, Math.round(Math.min(127, baseVel * 1.18)));
+        // Beat 1&: Soft chord pinch
+        pinch(secPerBeat * 0.5, 0.4, 0.8);
+        // Beat 2: Chord pinch
+        pinch(secPerBeat * 1.0, 0.45, 0.84);
+        // Beat 2&: Alternating 5th Bass
+        if (duration >= secPerBeat * 1.6) {
+          this.playNote(altBass, t + secPerBeat * 1.5, secPerBeat * 0.55, Math.round(baseVel * 1.02));
+        }
+        // Beat 3: Anchor Root Bass
+        if (duration >= secPerBeat * 2.1) {
+          this.playNote(bassMidi, t + secPerBeat * 2.0, secPerBeat * 0.9, Math.round(Math.min(127, baseVel * 1.12)));
+        }
+        // Beat 3& -> 4&: Rolling Bolero treble fill
+        if (duration >= secPerBeat * 2.7) {
+          [strings[2], strings[3], strings[4], strings[5]].forEach((m, idx) => {
+            const fillTime = t + secPerBeat * 2.5 + idx * (secPerBeat * 0.35);
+            if (fillTime < t + duration - 0.02) {
+              this.playNote(m, fillTime, secPerBeat * 0.75, Math.round(baseVel * (0.8 + idx * 0.04)));
+            }
+          });
+        }
+        break;
+      }
+
+      case 'vn_slow_rock': {
+        // Vietnamese Slow Rock (6/8 V-Pop Ballad): Rolling triplet wave (Bass -> 3rd -> 5th -> High -> 5th -> 3rd)
+        const step = this.getArpStepSeconds(rate, 1 / 3, secPerBeat); // Triplet 8th default
+        const maxSteps = Math.max(3, Math.floor(duration / step));
+        const wavePattern = [0, 3, 4, 5, 4, 3];
+        const waveVels = [1.15, 0.82, 0.88, 0.98, 0.86, 0.8];
+        for (let i = 0; i < maxSteps; i++) {
+          const noteTime = t + i * step;
+          if (noteTime >= t + duration - 0.02) break;
+          const pIdx = i % wavePattern.length;
+          const midi = strings[wavePattern[pIdx]] || strings[0];
+          const v = Math.round(Math.min(127, Math.max(25, baseVel * waveVels[pIdx])));
+          this.playNote(midi, noteTime, step * 2.6, v);
+        }
+        break;
+      }
+
+      case 'vn_boston': {
+        // Vietnamese Boston / Lyric Valse: Soft Bass on 1 -> Mid -> Gentle 2-string pinch -> Warm inner voice
+        const step = this.getArpStepSeconds(rate, 0.75, secPerBeat);
+        const numCycles = Math.max(1, Math.ceil(duration / (secPerBeat * 3)));
+        for (let c = 0; c < numCycles; c++) {
+          const baseT = t + c * secPerBeat * 3;
+          if (baseT >= t + duration - 0.02) break;
+          // Beat 1: Deep warm bass
+          this.playNote(strings[0], baseT, secPerBeat * 2.0, Math.round(Math.min(127, baseVel * 1.12)));
+          // Beat 2: Gentle mid voice
+          if (baseT + step < t + duration - 0.02) {
+            this.playNote(strings[2], baseT + step, secPerBeat * 1.1, Math.round(baseVel * 0.8));
+          }
+          // Beat 2.5: Soft 2-string lyric pinch
+          if (baseT + step * 1.8 < t + duration - 0.02) {
+            [strings[3], strings[5]].forEach(m => {
+              this.playNote(m, baseT + step * 1.8, secPerBeat * 1.0, Math.round(baseVel * 0.85));
+            });
+          }
+          // Beat 3: Warm resolving voice
+          if (baseT + step * 2.6 < t + duration - 0.02) {
+            this.playNote(strings[4], baseT + step * 2.6, secPerBeat * 0.9, Math.round(baseVel * 0.76));
+          }
+        }
+        break;
+      }
+
+      case 'vn_dan_tranh': {
+        // Vietnamese Folk Pentatonic / Dan Tranh Zither Cascade: Expressive sweeping glissando + delicate echo
+        const sweepDelay = 0.045;
+        strings.forEach((m, idx) => {
+          const noteTime = t + idx * sweepDelay;
+          if (noteTime >= t + duration - 0.02) return;
+          const v = Math.round(Math.min(127, baseVel * (idx === strings.length - 1 ? 1.08 : 0.84 + idx * 0.03)));
+          this.playNote(m, noteTime, Math.min(duration, secPerBeat * 2.6), v);
+        });
+        // Delicate mid-bar zither echo pluck
+        const step = this.getArpStepSeconds(rate, 0.5, secPerBeat);
+        if (duration >= secPerBeat * 2.0) {
+          [strings[5], strings[4], strings[3], strings[5]].forEach((m, idx) => {
+            const echoTime = t + secPerBeat * 2.0 + idx * step * 0.75;
+            if (echoTime < t + duration - 0.02) {
+              this.playNote(m, echoTime, step * 2.2, Math.round(baseVel * (0.82 - idx * 0.04)));
+            }
+          });
+        }
+        break;
+      }
+
+      case 'vn_vinahouse': {
+        // Vinahouse / Vietnamese Remix: Driving 4-on-the-floor bass + punchy off-beat chord plucks
+        const step = this.getArpStepSeconds(rate, 0.5, secPerBeat);
+        const maxSteps = Math.max(2, Math.floor(duration / step));
+        for (let i = 0; i < maxSteps; i++) {
+          const noteTime = t + i * step;
+          if (noteTime >= t + duration - 0.02) break;
+          if (i % 2 === 0) {
+            // Downbeat: Heavy kick-synced bass
+            this.playNote(strings[0], noteTime, step * 0.8, Math.round(Math.min(127, baseVel * 1.2)));
+          } else {
+            // Off-beat: Bright staccato pluck
+            [strings[2], strings[3], strings[4], strings[5]].forEach(m => {
+              this.playNote(m, noteTime, step * 0.45, Math.round(baseVel * 0.92));
+            });
+          }
+        }
+        break;
+      }
+
       case 'block':
       default: {
         // Classic simultaneous block chord

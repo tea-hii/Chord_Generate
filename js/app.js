@@ -302,6 +302,11 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'synthwave': return '🌆 Synth80s';
       case 'funk_disco': return '🪩 Disco';
       case 'neo_soul': return '🎹 NeoSoul';
+      case 'vn_bolero': return '🇻🇳 Bolero';
+      case 'vn_slow_rock': return '🎸 Slow6/8';
+      case 'vn_boston': return '🥀 Boston';
+      case 'vn_dan_tranh': return '🌾 DanTranh';
+      case 'vn_vinahouse': return '🔊 Vina';
       case 'block': return '⏹️ Block';
       default: return '🎸 Ballad';
     }

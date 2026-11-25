@@ -125,6 +125,11 @@ class SlotModal {
               <option value="synthwave">🌆 Synthwave / 80s Arp</option>
               <option value="funk_disco">🪩 Funk / Disco Octave Groove</option>
               <option value="neo_soul">🎹 Neo-Soul / Gospel Cascade</option>
+              <option value="vn_bolero">🇻🇳 Vietnamese Bolero (Rumba Ballad)</option>
+              <option value="vn_slow_rock">🎸 Slow Rock 6/8 (V-Pop Ballad)</option>
+              <option value="vn_boston">🥀 Boston / Lyric Valse</option>
+              <option value="vn_dan_tranh">🌾 Folk Pentatonic (Dan Tranh)</option>
+              <option value="vn_vinahouse">🔊 Vinahouse / Remix Off-Beat</option>
               <option value="block">⏹️ Block Chord (Simultaneous)</option>
             </select>
 
