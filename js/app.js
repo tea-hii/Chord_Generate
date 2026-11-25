@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Audio settings
   const instrumentSelect = document.getElementById('instrument-select');
   const strumSelect = document.getElementById('strum-select');
+  const arpRateSelect = document.getElementById('arp-rate-select');
   const applyStyleAllBtn = document.getElementById('apply-style-all-btn');
   const masterVolumeSlider = document.getElementById('master-volume');
   const metronomeVolumeSlider = document.getElementById('metronome-volume');
@@ -134,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   instrumentSelect.value = audio.instrument;
   if (strumSelect) strumSelect.value = audio.strumStyle;
+  if (arpRateSelect) arpRateSelect.value = audio.arpRate;
 
   // 3. Populate Progression Presets (Compact clean labels to prevent overflow)
   PROGRESSION_TEMPLATES.forEach((tpl, idx) => {
@@ -317,7 +319,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const fractionStr = beatsToFraction(slot.beats);
       const isSelected = sequencer.selectedSlotIndex === index;
       const isEmpty = (slot.chord === null);
-      const styleBadge = getStyleBadge(slot.strumStyle || (slot.chord && slot.chord.strumStyle) || audio.strumStyle);
+      const effectiveStyle = slot.strumStyle || (slot.chord && slot.chord.strumStyle) || audio.strumStyle;
+      const effectiveRate = slot.arpRate || (slot.chord && slot.chord.arpRate) || audio.arpRate;
+      const styleBadge = getStyleBadge(effectiveStyle);
+      const rateBadge = (effectiveRate && effectiveRate !== 'auto' && effectiveRate !== 'inherit') ? ` · ${effectiveRate}` : '';
 
       const slotEl = document.createElement('div');
       slotEl.dataset.index = index;
@@ -366,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
             <div class="flex items-center space-x-1">
               <span class="font-mono bg-slate-950 px-1 py-0.5 rounded text-indigo-300 text-[10px]">B${barNum}</span>
-              <span class="text-[9px] px-1 py-0.5 rounded bg-indigo-950/80 text-indigo-300 font-mono border border-indigo-800/50" title="Picking Style: ${styleBadge}">${styleBadge}</span>
+              <span class="text-[9px] px-1 py-0.5 rounded bg-indigo-950/80 text-indigo-300 font-mono border border-indigo-800/50 truncate max-w-[78px]" title="Picking Style: ${styleBadge}${rateBadge}">${styleBadge}${rateBadge}</span>
             </div>
             <div class="flex items-center space-x-1">
               <!-- Minimalist 2D Pencil Edit Button -->
@@ -415,11 +420,13 @@ document.addEventListener('DOMContentLoaded', () => {
               }
             }
             const slotStyle = slot.strumStyle || (slot.chord && slot.chord.strumStyle) || null;
+            const slotRate = slot.arpRate || (slot.chord && slot.chord.arpRate) || null;
             audio.playChord(slot.chord, null, slot.beats * sequencer.getSecondsPerBeat(), slot.velocity || 90, {
               beats: slot.beats,
               secPerBeat: sequencer.getSecondsPerBeat(),
               nextChord: nextChord,
-              style: slotStyle
+              style: slotStyle,
+              rate: slotRate
             });
           });
         }
@@ -488,7 +495,8 @@ document.addEventListener('DOMContentLoaded', () => {
             beats: slot.beats,
             secPerBeat: sequencer.getSecondsPerBeat(),
             nextChord: nextChord,
-            style: slot.strumStyle || (slot.chord && slot.chord.strumStyle) || null
+            style: slot.strumStyle || (slot.chord && slot.chord.strumStyle) || null,
+            rate: slot.arpRate || (slot.chord && slot.chord.arpRate) || null
           });
         });
       }
@@ -527,7 +535,8 @@ document.addEventListener('DOMContentLoaded', () => {
               beats: slot.beats,
               secPerBeat: sequencer.getSecondsPerBeat(),
               nextChord: nextChord,
-              style: slot.strumStyle || (slot.chord && slot.chord.strumStyle) || null
+              style: slot.strumStyle || (slot.chord && slot.chord.strumStyle) || null,
+              rate: slot.arpRate || (slot.chord && slot.chord.arpRate) || null
             });
           }
         } catch (err) {
@@ -686,22 +695,36 @@ document.addEventListener('DOMContentLoaded', () => {
     audio.setInstrument(e.target.value);
   });
 
-  function applyStyleToAllSlots(selectedStyle) {
+  function applyStyleToAllSlots(selectedStyle, selectedRate) {
     audio.setStrumStyle(selectedStyle);
+    if (selectedRate !== undefined) {
+      audio.setArpRate(selectedRate);
+    }
+    const rateToApply = selectedRate !== undefined ? selectedRate : (arpRateSelect ? arpRateSelect.value : 'auto');
     sequencer.slots.forEach(s => {
       s.strumStyle = selectedStyle;
-      if (s.chord) s.chord.strumStyle = selectedStyle;
+      s.arpRate = rateToApply;
+      if (s.chord) {
+        s.chord.strumStyle = selectedStyle;
+        s.chord.arpRate = rateToApply;
+      }
     });
     renderTimelineSlots(sequencer.slots);
   }
 
   strumSelect.addEventListener('change', (e) => {
-    applyStyleToAllSlots(e.target.value);
+    applyStyleToAllSlots(e.target.value, arpRateSelect ? arpRateSelect.value : 'auto');
   });
+
+  if (arpRateSelect) {
+    arpRateSelect.addEventListener('change', (e) => {
+      applyStyleToAllSlots(strumSelect.value, e.target.value);
+    });
+  }
 
   if (applyStyleAllBtn) {
     applyStyleAllBtn.addEventListener('click', () => {
-      applyStyleToAllSlots(strumSelect.value);
+      applyStyleToAllSlots(strumSelect.value, arpRateSelect ? arpRateSelect.value : 'auto');
       const originalHtml = applyStyleAllBtn.innerHTML;
       applyStyleAllBtn.innerHTML = `
         <svg class="w-3.5 h-3.5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

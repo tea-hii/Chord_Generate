@@ -213,8 +213,9 @@ class Sequencer {
   updateSlot(index, updates) {
     if (index >= 0 && index < this.slots.length) {
       Object.assign(this.slots[index], updates);
-      if (this.slots[index].chord && updates.strumStyle) {
-        this.slots[index].chord.strumStyle = updates.strumStyle;
+      if (this.slots[index].chord) {
+        if (updates.strumStyle) this.slots[index].chord.strumStyle = updates.strumStyle;
+        if (updates.arpRate) this.slots[index].chord.arpRate = updates.arpRate;
       }
       if (updates.beats) {
         this.rebalanceSlotsToBeats();
@@ -359,11 +360,13 @@ class Sequencer {
           }
 
           const slotStyle = slot.strumStyle || (slot.chord && slot.chord.strumStyle) || null;
+          const slotRate = slot.arpRate || (slot.chord && slot.chord.arpRate) || null;
           this.audio.playChord(slot.chord, stepTime, chordDuration, vel, {
             beats: slot.beats,
             secPerBeat: secPerBeat,
             nextChord: nextChord,
-            style: slotStyle
+            style: slotStyle,
+            rate: slotRate
           });
         }
         break;

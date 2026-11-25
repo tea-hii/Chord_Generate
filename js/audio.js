@@ -32,7 +32,8 @@ class AudioEngine {
     this.instrument = 'gm_0_grand_piano';
     this.volume = 0.8;
     this.metronomeVolume = 0.7;
-    this.strumStyle = 'fingerstyle'; // 'fingerstyle', 'strum', 'walking_bass', 'piano_arpeggio', 'block'
+    this.strumStyle = 'fingerstyle';
+    this.arpRate = 'auto'; // 'auto', '1/4', '3/16', '1/8', '1/8T', '1/16'
     this.defaultVelocity = 90; // Default MIDI velocity (0-127)
     this.isMuted = false;
   }
@@ -117,6 +118,23 @@ class AudioEngine {
 
   setStrumStyle(style) {
     this.strumStyle = style;
+  }
+
+  setArpRate(rate) {
+    this.arpRate = rate || 'auto';
+  }
+
+  getArpStepSeconds(rate, defaultMultiplier, secPerBeat) {
+    switch (rate) {
+      case '1/4': return secPerBeat * 1.0;
+      case '3/16': return secPerBeat * 0.75;
+      case '1/8': return secPerBeat * 0.5;
+      case '1/8T': return secPerBeat / 3.0;
+      case '1/16': return secPerBeat * 0.25;
+      case 'auto':
+      default:
+        return secPerBeat * defaultMultiplier;
+    }
   }
 
   // Play a note using General MIDI synthesis with dynamic Velocity scaling
@@ -761,10 +779,19 @@ class AudioEngine {
       style = this.strumStyle || 'fingerstyle';
     }
 
+    // Choose specific slot rate if provided, else chord rate, else fallback to global rate
+    let rate = options.rate;
+    if (!rate || rate === 'inherit') {
+      rate = (chord && chord.arpRate) || this.arpRate || 'auto';
+    }
+    if (rate === 'inherit') {
+      rate = this.arpRate || 'auto';
+    }
+
     switch (style) {
       case 'fingerstyle': {
         // Authentic acoustic ballad fingerpicking pattern across the duration
-        const step = secPerBeat * 0.5; // 8th note interval
+        const step = this.getArpStepSeconds(rate, 0.5, secPerBeat);
         const maxSteps = Math.max(2, Math.floor(duration / step));
 
         // 8-step acoustic pattern index maps to strings: [Bass, 5th, MidRoot, 3rd, 5thHigh, HighTop]
@@ -789,6 +816,20 @@ class AudioEngine {
       }
 
       case 'strum': {
+        if (rate !== 'auto') {
+          // Custom subdivision strumming (alternating down / up)
+          const step = this.getArpStepSeconds(rate, 0.5, secPerBeat);
+          const maxSteps = Math.max(1, Math.floor(duration / step));
+          for (let i = 0; i < maxSteps; i++) {
+            const strumTime = t + i * step;
+            if (strumTime >= t + duration - 0.02) break;
+            const isDown = (i % 2 === 0);
+            const slice = isDown ? (i === 0 ? strings : strings.slice(1)) : strings.slice(2);
+            const velScale = i === 0 ? 1.08 : (isDown ? 0.88 : 0.74);
+            this.playStrumChord(slice, strumTime, Math.min(step * 1.15, (t + duration) - strumTime), baseVel * velScale, isDown);
+          }
+          break;
+        }
         // Dynamic rhythmic acoustic guitar strumming with down/up groove
         // Beat 1 (t+0): Full Down-strum (all 6 strings)
         this.playStrumChord(strings, t, Math.min(duration, secPerBeat * 1.8), baseVel * 1.1, true);
@@ -861,7 +902,7 @@ class AudioEngine {
 
       case 'piano_arpeggio': {
         // Flowing piano ballad arpeggio across 2 octaves
-        const step = secPerBeat * 0.375; // 16th/8th roll
+        const step = this.getArpStepSeconds(rate, 0.375, secPerBeat);
         const maxSteps = Math.max(3, Math.floor(duration / step));
         const arpeggioNotes = [strings[0], strings[1], strings[2], strings[3], strings[4], strings[5], strings[4], strings[3]];
 
@@ -878,8 +919,8 @@ class AudioEngine {
       }
 
       case 'flamenco': {
-        // Fast passionate 16th-note Spanish tremolo roll
-        const step = secPerBeat * 0.25; // 16th note step
+        // Fast passionate Spanish tremolo roll
+        const step = this.getArpStepSeconds(rate, 0.25, secPerBeat);
         const maxSteps = Math.max(4, Math.floor(duration / step));
         const patternIndices = [0, 3, 4, 5, 4, 3, 5, 4];
         const velMultipliers = [1.2, 0.88, 0.95, 1.05, 0.9, 0.85, 1.0, 0.9];
@@ -939,7 +980,7 @@ class AudioEngine {
 
       case 'ambient_lofi': {
         // Cascading ethereal harp-like arpeggio with soft attack and high sustain
-        const step = secPerBeat * 0.35;
+        const step = this.getArpStepSeconds(rate, 0.35, secPerBeat);
         const maxSteps = Math.max(3, Math.floor(duration / step));
         const harpNotes = [strings[0], strings[1], strings[2], strings[3], strings[4], strings[5], strings[4], strings[3]];
         for (let i = 0; i < maxSteps; i++) {
@@ -955,7 +996,7 @@ class AudioEngine {
 
       case 'travis_picking': {
         // Country / Folk Travis Picking: alternating thumb bass (Root -> 5th) + syncopated top melody plucks
-        const step = secPerBeat * 0.5; // 8th notes
+        const step = this.getArpStepSeconds(rate, 0.5, secPerBeat);
         const maxSteps = Math.max(2, Math.floor(duration / step));
         // Pattern: [Thumb Root, Treble 5th, Thumb AltBass, Treble 3rd, Thumb Root, Treble High, Thumb AltBass, Treble 3rd]
         const patternIndices = [0, 4, 1, 3, 0, 5, 1, 3];
@@ -974,8 +1015,8 @@ class AudioEngine {
       }
 
       case 'classical_alberti': {
-        // Classical Piano Alberti Bass (Low -> High -> Mid -> High) in 8th/16th subdivision
-        const step = secPerBeat * 0.25; // 16th-note classical ripple
+        // Classical Piano Alberti Bass (Low -> High -> Mid -> High)
+        const step = this.getArpStepSeconds(rate, 0.25, secPerBeat);
         const maxSteps = Math.max(4, Math.floor(duration / step));
         const patternIndices = [0, 4, 2, 4, 1, 5, 3, 5];
         const velMultipliers = [1.1, 0.78, 0.85, 0.78, 1.0, 0.82, 0.88, 0.82];
@@ -1051,8 +1092,8 @@ class AudioEngine {
       }
 
       case 'cinematic_swell': {
-        // Cinematic 8th-note driving pulse on Root/5th with soaring crescendo top voices
-        const step = secPerBeat * 0.5;
+        // Cinematic driving pulse on Root/5th with soaring crescendo top voices
+        const step = this.getArpStepSeconds(rate, 0.5, secPerBeat);
         const maxSteps = Math.max(2, Math.floor(duration / step));
         for (let i = 0; i < maxSteps; i++) {
           const noteTime = t + i * step;

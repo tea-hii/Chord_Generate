@@ -50,8 +50,9 @@ Built entirely with standard **HTML5 and Web Audio API**, requiring zero backend
   - Clicking outside the modal backdrop
 
 ### 5. 🎸 Per-Chord Picking & Arpeggio Styles (with "Set All" Master Control)
-- **Individual Per-Chord Customization**: Each chord in your progression can have its own distinct accompaniment style, allowing dynamic contrast (e.g., ballad fingerpicking in the verse, rapid flamenco roll into the chorus, walking bass in the bridge).
-- **Master "⚡ Set All" Control**: Easily set every chord slot in the entire progression to a chosen style with a single click, then fine-tune individual chords as desired.
+- **Individual Per-Chord Customization**: Each chord in your progression can have its own distinct accompaniment style and picking speed, allowing dynamic contrast (e.g., slow `1/4` ballad fingerpicking in the verse, fast `1/16` flamenco roll into the chorus).
+- **Picking Speed / Note Subdivision Rate**: Choose between `Auto (Style Default)`, `1/4` (Slow / 1 Beat), `3/16` (Dotted 8th), `1/8` (Ballad Standard), `1/8T` (Triplet Swing), and `1/16` (Fast Roll) — globally or per chord.
+- **Master "⚡ Set All" Control**: Easily set every chord slot in the entire progression to a chosen style and rate with a single click, then fine-tune individual chords as desired.
 - **15 Rich Accompaniment Styles**:
   1. **Fingerpicking (Ballad Pluck)**: Emulates an acoustic guitar ballad picking pattern. Deep bass note on beat 1, rolling 8th-note string plucks (Bass -> 3rd -> 5th -> High Melody -> Alternating Bass -> 3rd -> High Melody -> 5th) that breathe naturally.
   2. **Acoustic Strum (Groove)**: Authentic rhythmic acoustic guitar strumming with humanized micro-staggers (~24ms delay between strings) and musical down/up strum velocity contours.

@@ -121,6 +121,19 @@ class SlotModal {
               <option value="cinematic_swell">🎬 Cinematic Pulse (8th Ostinato)</option>
               <option value="block">⏹️ Block Chord (Simultaneous)</option>
             </select>
+
+            <div class="flex items-center justify-between mt-1.5">
+              <label class="font-semibold text-slate-300 text-[11px]">Picking Speed (Note Subdivision):</label>
+              <select id="modal-rate-select" class="bg-slate-950 border border-slate-700 rounded-lg text-sky-300 text-xs px-2.5 py-1 font-bold focus:outline-none cursor-pointer">
+                <option value="inherit">Follow Global Rate</option>
+                <option value="auto">Auto (Style Default)</option>
+                <option value="1/4">1/4 (Slow / 1 Beat)</option>
+                <option value="3/16">3/16 (Dotted 8th)</option>
+                <option value="1/8">1/8 (Ballad Standard)</option>
+                <option value="1/8T">1/8T (Triplet Swing)</option>
+                <option value="1/16">1/16 (Fast Roll)</option>
+              </select>
+            </div>
           </div>
 
           <!-- Section 4: MIDI Grid Inspector -->
@@ -175,6 +188,7 @@ class SlotModal {
     this.velocitySlider = this.modalEl.querySelector('#modal-velocity-slider');
     this.velocityLabel = this.modalEl.querySelector('#modal-velocity-label');
     this.styleSelect = this.modalEl.querySelector('#modal-style-select');
+    this.rateSelect = this.modalEl.querySelector('#modal-rate-select');
   }
 
   bindEvents() {
@@ -227,11 +241,13 @@ class SlotModal {
     saveBtn.addEventListener('click', () => {
       const beats = this.selectedSixteenths * 0.25;
       const strumStyle = this.styleSelect ? this.styleSelect.value : 'inherit';
+      const arpRate = this.rateSelect ? this.rateSelect.value : 'inherit';
       if (this.onSave) {
         this.onSave(this.currentSlotIndex, {
           beats: beats,
           velocity: this.selectedVelocity,
-          strumStyle: strumStyle
+          strumStyle: strumStyle,
+          arpRate: arpRate
         });
       }
       this.close();
@@ -301,9 +317,12 @@ class SlotModal {
     this.velocitySlider.value = vel;
     this.updateVelocityLabel(vel);
 
-    // Match Picking Style
+    // Match Picking Style & Speed Rate
     if (this.styleSelect) {
       this.styleSelect.value = slot.strumStyle || (slot.chord && slot.chord.strumStyle) || 'inherit';
+    }
+    if (this.rateSelect) {
+      this.rateSelect.value = slot.arpRate || (slot.chord && slot.chord.arpRate) || 'inherit';
     }
 
     this.modalEl.classList.remove('hidden');
