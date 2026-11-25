@@ -454,12 +454,9 @@ document.addEventListener('DOMContentLoaded', () => {
         slotEl.setAttribute('draggable', 'true');
 
         slotEl.innerHTML = `
-          <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-            <div class="flex items-center space-x-1">
-              <span class="font-mono bg-slate-950 px-1 py-0.5 rounded text-indigo-300 text-[10px]">B${barNum}</span>
-              <span class="text-[9px] px-1 py-0.5 rounded bg-indigo-950/80 text-indigo-300 font-mono border border-indigo-800/50 truncate max-w-[78px]" title="Picking Style: ${styleBadge}${rateBadge}">${styleBadge}${rateBadge}</span>
-            </div>
-            <div class="flex items-center space-x-1">
+          <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1 gap-1">
+            <span class="font-mono bg-slate-950 px-1.5 py-0.5 rounded text-indigo-300 text-[10px] flex-shrink-0">B${barNum}</span>
+            <div class="flex items-center space-x-1 flex-shrink-0">
               <!-- Minimalist 2D Pencil Edit Button -->
               <button type="button" class="edit-slot-btn p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer flex items-center justify-center" title="Edit Duration (${fractionStr}), Style & Velocity">
                 ${SVG_PENCIL}
@@ -475,12 +472,13 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
           
-          <div class="play-chord-zone text-center py-1 cursor-pointer hover:opacity-90 select-none">
-            <div class="text-xl sm:text-2xl font-black text-white tracking-wide">${slot.chord.fullName}</div>
-            <div class="text-[11px] text-indigo-400 font-mono mt-0.5">${slot.chord.degree || ''}</div>
+          <div class="play-chord-zone text-center py-0.5 cursor-pointer hover:opacity-90 select-none flex flex-col items-center">
+            <div class="text-xl sm:text-2xl font-black text-white tracking-wide leading-tight">${slot.chord.fullName}</div>
+            <div class="text-[11px] text-indigo-400 font-mono">${slot.chord.degree || ''}</div>
+            <span class="mt-1 text-[9px] px-1.5 py-0.5 rounded bg-indigo-950/80 text-indigo-300 font-mono border border-indigo-800/50 max-w-full truncate" title="Picking Style: ${styleBadge}${rateBadge}">${styleBadge}${rateBadge}</span>
           </div>
 
-          <div class="flex items-center justify-between mt-1 pt-1.5 border-t border-slate-700/60 text-xs">
+          <div class="flex items-center justify-between mt-1.5 pt-1.5 border-t border-slate-700/60 text-xs">
             <button type="button" class="edit-duration-badge font-mono text-[10px] bg-slate-950 px-2 py-0.5 rounded text-sky-400 border border-slate-800 hover:bg-slate-800 transition cursor-pointer" title="Click to edit duration">
               ${fractionStr} ▾
             </button>
